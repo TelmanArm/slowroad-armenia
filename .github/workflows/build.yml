@@ -1,0 +1,38 @@
+name: Build and push image
+
+# Run this workflow whenever code is pushed to the main branch
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    # Use the latest Ubuntu runner provided by GitHub
+    runs-on: ubuntu-latest
+    # Grant the token permission to read the repo and publish packages (images)
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # Check out the repository code so the runner can build it
+      - uses: actions/checkout@v4
+
+      # Authenticate with GitHub Container Registry (GHCR)
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build the Docker image and push it to GHCR
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Tag the image as "latest" and with the commit SHA for traceability
+          tags: |
+            ghcr.io/telmanarm/slowroad-armenia:latest
+            ghcr.io/telmanarm/slowroad-armenia:${{ github.sha }}
