@@ -29,7 +29,7 @@ jobs:
             docker rm slowroad || true
 
             # Start the new container, exposed only to nginx on port 5000
-            docker run -d --name slowroad --restart unless-stopped -p 127.0.0.1:5000:8080 ghcr.io/telmanarm/slowroad-armenia:latest
+            docker run -d --name slowroad --restart unless-stopped -p 127.0.0.1:8000:8080 ghcr.io/telmanarm/slowroad-armenia:latest
 
             # Delete old unused images to free up disk space
             docker image prune -f
