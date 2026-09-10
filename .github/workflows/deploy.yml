@@ -9,8 +9,7 @@ on:
 jobs: 
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}    
     steps:
       - name: SSH into EC2 adn updat the container
         uses: appleboy/ssh-action@v1
@@ -24,6 +23,7 @@ jobs:
             docker stop slowroad || true                                  
             docker rm slowroad || true
             
-            docker run -d --name slowroad --restart unless-stopped -p 80:8080 ghcr.io/telmanarm/slowroad-armenia:latest
+            docker run -d --name slowroad --restart unless-stopped \
+              -p 127.0.0.1:5000:8080 ghcr.io/telmanarm/slowroad-armenia:latest
             
             docker image prune -f
