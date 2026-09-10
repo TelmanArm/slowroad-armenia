@@ -1,8 +1,37 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "The Slow Road Armenia";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <span class="hero-eyebrow">The Slow Road Armenia</span>
+        <h1 class="hero-title">Welcome to Armenia</h1>
+        <p class="hero-subtitle">
+            Take the slow road through ancient monasteries, mountain villages, and
+            timeless landscapes. Travel gently, and see more.
+        </p>
+        <div class="hero-actions">
+            <a class="btn btn-hero-primary" asp-controller="Home" asp-action="Index">Start Exploring</a>
+            <a class="btn btn-hero-ghost" asp-controller="Home" asp-action="Privacy">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="feature-card">
+        <div class="feature-icon">⛰️</div>
+        <h3>Breathtaking Nature</h3>
+        <p>From the peaks of the Caucasus to the shores of Lake Sevan, discover landscapes that take their time.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🏛️</div>
+        <h3>Ancient Heritage</h3>
+        <p>Wander through monasteries and temples that have stood for over a thousand years.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🍇</div>
+        <h3>Warm Hospitality</h3>
+        <p>Share a table, a story, and a glass of Armenian wine with the people who call this land home.</p>
+    </div>
+</section>
