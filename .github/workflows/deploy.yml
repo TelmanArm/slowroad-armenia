@@ -1,29 +1,35 @@
 name: Depoy to EC2
 
+# Run after "Build and push image" finishes, or manually from the Actions tab
 on:
   workflow_run:
     workflows: [Build and push image]
     types: [completed]
   workflow_dispatch:
-    
-jobs: 
+
+jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}    
+    # Only deploy on a manual run, or when the build workflow succeeded
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: SSH into EC2 adn updat the container
         uses: appleboy/ssh-action@v1
-        with: 
+        # Connect to the EC2 server using secrets stored in the repo
+        with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}                               
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Download the newest image from GHCR
             docker pull ghcr.io/telmanarm/slowroad-armenia:latest
-            
-            docker stop slowroad || true                                  
+
+            # Stop and remove the old container if it exists
+            docker stop slowroad || true
             docker rm slowroad || true
-            
-            docker run -d --name slowroad --restart unless-stopped \
-              -p 127.0.0.1:5000:8080 ghcr.io/telmanarm/slowroad-armenia:latest
-            
+
+            # Start the new container, exposed only to nginx on port 5000
+            docker run -d --name slowroad --restart unless-stopped -p 127.0.0.1:5000:8080 ghcr.io/telmanarm/slowroad-armenia:latest
+
+            # Delete old unused images to free up disk space
             docker image prune -f
