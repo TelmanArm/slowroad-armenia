@@ -1,9 +1,10 @@
 name: Depoy to EC2
 
 on:
-  workflow_run: 
+  workflow_run:
     workflows: [Build and push image]
     types: [completed]
+  workflow_dispatch:
     
 jobs: 
   deploy:

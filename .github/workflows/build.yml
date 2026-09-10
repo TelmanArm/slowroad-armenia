@@ -1,9 +1,11 @@
 name: Build and push image
 
-# Run this workflow whenever code is pushed to the main branch
+# Run this workflow whenever code is pushed to the main branch,
+# or manually from the Actions tab
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
