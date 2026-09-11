@@ -27,3 +27,6 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+// Lets tests start the app in memory (see SlowRoad.Tests/HomePageTests.cs)
+public partial class Program { }
