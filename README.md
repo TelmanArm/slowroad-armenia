@@ -13,8 +13,10 @@ to AWS EC2 through a fully automated Docker + GitHub Actions pipeline.
 
 Two workflows:
 
-- **CI** (`ci.yml`) — runs on every pull request to `main`: `dotnet build + test`. No deploy.
-- **CD** (`cd.yml`) — runs on every push to `main`: test → build → deploy.
+- **CI** (`ci.yml`) — on every pull request to `main`: `dotnet build + test`. No deploy.
+- **CD** (`cd.yml`) — on every push to `main`: test → build → deploy.
+
+Both can also be run manually from the Actions tab (`workflow_dispatch`).
 
 CD runs on push to `main`, and each stage gates the next:
 
