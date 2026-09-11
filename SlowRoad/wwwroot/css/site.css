@@ -58,6 +58,17 @@ body {
 
 /* ===== Home page ===== */
 
+.page-eyebrow {
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #f97316;
+  margin-bottom: 1.5rem;
+}
+
 .hero {
   position: relative;
   border-radius: 20px;
@@ -80,16 +91,6 @@ body {
   position: relative;
   max-width: 720px;
   margin: 0 auto;
-}
-
-.hero-eyebrow {
-  display: inline-block;
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  font-size: 0.8rem;
-  font-weight: 600;
-  opacity: 0.85;
-  margin-bottom: 1rem;
 }
 
 .hero-title {
