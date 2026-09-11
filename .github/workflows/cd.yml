@@ -1,0 +1,86 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one CD run per branch at a time so deploys can't land out of order.
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/telmanarm/slowroad-armenia
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    # Grant the token permission to read the repo and publish packages (images)
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # Check out the repository code so the runner can build it
+      - uses: actions/checkout@v4
+
+      # Authenticate with GitHub Container Registry (GHCR)
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build once and tag with the commit SHA (immutable, traceable)
+      # and "latest" (convenience pointer to the newest build).
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the repo so deploy/deploy.sh exists on the runner.
+      - uses: actions/checkout@v4
+
+      - name: SSH into EC2 and update the container
+        uses: appleboy/ssh-action@v1
+        # Pass IMAGE and SHA to the server; deploy.sh reads them from the env.
+        env:
+          IMAGE: ${{ env.IMAGE }}
+          SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE,SHA
+          # Send deploy/deploy.sh to the server and run it there.
+          script_path: deploy/deploy.sh
