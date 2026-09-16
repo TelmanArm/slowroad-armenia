@@ -6,16 +6,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
-
 
 // Register EF Core with PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// Register ASP.NET Core Identity
-builder.Services.AddDefaultIdentity<IdentityUser>()
-    .AddEntityFrameworkStores<AppDbContext>();
+// Register ASP.NET Core Identity (no built-in pages)
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+// Send users who aren't logged in to our login page
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    o.LoginPath = "/Admin/Login";
+});
 
 var app = builder.Build();
 
@@ -30,9 +35,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+
 // Enable auth middleware
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();   
+app.UseAuthorization();    
 
 // Serve static assets
 app.MapStaticAssets();
@@ -43,7 +49,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-app.MapRazorPages();
 app.Run();
 
 public partial class Program { }
