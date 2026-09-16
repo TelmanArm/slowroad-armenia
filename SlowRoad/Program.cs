@@ -1,13 +1,21 @@
-using Microsoft.EntityFrameworkCore;   // ADD
-using SlowRoad.Data;      
+using Microsoft.EntityFrameworkCore; 
+using SlowRoad.Data;     
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
-builder.Services.AddDbContext<AppDbContext>(o =>                          // ADD
+
+// Register EF Core with PostgreSQL
+builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Register ASP.NET Core Identity
+builder.Services.AddDefaultIdentity<IdentityUser>()
+    .AddEntityFrameworkStores<AppDbContext>();
 
 var app = builder.Build();
 
@@ -22,16 +30,20 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+// Enable auth middleware
+app.UseAuthentication();
 app.UseAuthorization();
 
+// Serve static assets
 app.MapStaticAssets();
 
+// Default MVC route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
+app.MapRazorPages();
 app.Run();
 
 public partial class Program { }
