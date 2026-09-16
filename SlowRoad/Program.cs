@@ -1,7 +1,13 @@
+using Microsoft.EntityFrameworkCore;   // ADD
+using SlowRoad.Data;      
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<AppDbContext>(o =>                          // ADD
+    o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 var app = builder.Build();
 
@@ -28,5 +34,4 @@ app.MapControllerRoute(
 
 app.Run();
 
-// Lets tests start the app in memory (see SlowRoad.Tests/HomePageTests.cs)
 public partial class Program { }
