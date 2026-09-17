@@ -1,9 +1,14 @@
 @{
     ViewData["Title"] = "Admin";
+    ViewData["CardClass"] = "admin-card--wide";
 }
 
 <h1>Admin panel</h1>
 <p>Logged in as @User.Identity?.Name</p>
+
+<p>
+    <a class="btn" asp-controller="Places" asp-action="Index">Manage Places</a>
+</p>
 
 <form asp-action="Logout" method="post">
     <button type="submit">Log out</button>

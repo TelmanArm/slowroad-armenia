@@ -1,0 +1,21 @@
+@model Place
+
+<div asp-validation-summary="ModelOnly"></div>
+
+<div>
+    <label asp-for="Name"></label>
+    <input asp-for="Name" />
+    <span asp-validation-for="Name"></span>
+</div>
+
+<div>
+    <label asp-for="Region"></label>
+    <input asp-for="Region" />
+    <span asp-validation-for="Region"></span>
+</div>
+
+<div>
+    <label asp-for="Description"></label>
+    <textarea asp-for="Description" rows="6"></textarea>
+    <span asp-validation-for="Description"></span>
+</div>

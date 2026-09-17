@@ -17,7 +17,7 @@
 <body>
     <!-- No header/nav/footer here: admin pages get a bare, centred layout -->
     <div class="admin-shell">
-        <div class="admin-card">
+        <div class="admin-card @ViewData["CardClass"]">
             @RenderBody()
         </div>
     </div>
