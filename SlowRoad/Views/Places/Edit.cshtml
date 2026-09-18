@@ -1,0 +1,18 @@
+@model Place
+@{
+    ViewData["Title"] = "Edit place";
+    ViewData["CardClass"] = "admin-card--wide";
+}
+
+<h1>Edit place</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <partial name="_PlaceForm" model="Model" />
+    <button type="submit" class="btn">Save</button>
+    <a asp-action="Index">Cancel</a>
+</form>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

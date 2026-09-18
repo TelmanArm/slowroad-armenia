@@ -567,6 +567,111 @@ section[id] { scroll-margin-top: var(--nav-height); }
 .page > main { flex: 1 0 auto; }
 
 /* =====================================================================
+   Admin — minimal login / dashboard layout (uses _AdminLayout.cshtml)
+   Reuses the site palette and variables defined in :root above.
+   ===================================================================== */
+
+/* Full-viewport, centred wrapper */
+.admin-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--sand-light);
+}
+
+/* White card holding the form */
+.admin-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem 2rem 2.25rem;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.admin-card h1 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Form fields: labels and inputs stacked */
+.admin-card form > div {
+  margin-bottom: 1.1rem;
+}
+.admin-card label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+.admin-card input {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  color: var(--charcoal);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-card input:focus {
+  outline: none;
+  border-color: var(--apricot);
+  box-shadow: 0 0 0 3px rgba(242, 162, 92, 0.25);
+}
+
+/* Full-width primary button, matching the site "Start planning" style */
+.admin-card button[type="submit"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.8rem 1.75rem;
+  border: 2px solid var(--apricot);
+  border-radius: 999px;
+  background: var(--apricot);
+  color: var(--charcoal);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-card button[type="submit"]:hover,
+.admin-card button[type="submit"]:focus-visible {
+  background: var(--apricot-deep);
+  border-color: var(--apricot-deep);
+  box-shadow: 0 10px 22px rgba(217, 134, 59, 0.35);
+}
+
+/* Validation errors — small red text */
+.admin-card .field-validation-error,
+.admin-card .validation-summary-errors {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--red);
+  font-size: 0.85rem;
+}
+.admin-card .validation-summary-errors {
+  margin-bottom: 1rem;
+}
+.admin-card .validation-summary-errors ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+/* "Back to site" link under the form */
+.admin-back {
+  display: block;
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* =====================================================================
    Responsive — mobile-first breakpoints
    ===================================================================== */
 
@@ -604,4 +709,78 @@ section[id] { scroll-margin-top: var(--nav-height); }
   .info-grid { grid-template-columns: repeat(3, 1fr); }
   .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
   .hero { min-height: 84vh; }
+}
+
+/* =====================================================================
+   Admin — Places management (wide card, buttons, table)
+   Reuses the site palette (:root) and the base .btn defined above.
+   Button colours are scoped to .admin-card so the public site's
+   .btn--primary / .btn--ghost / .btn--outline styles are untouched.
+   ===================================================================== */
+
+/* Wider card for the list / create / edit pages.
+   Login keeps the narrow .admin-card (it doesn't set CardClass). */
+.admin-card--wide {
+  max-width: 900px;
+}
+
+/* Inside admin, a bare .btn is a filled (apricot) button.
+   The base .btn above already provides padding, radius and border. */
+.admin-card .btn {
+  background: var(--apricot);
+  border-color: var(--apricot);
+  color: var(--charcoal);
+}
+.admin-card .btn:hover,
+.admin-card .btn:focus-visible {
+  background: var(--apricot-deep);
+  border-color: var(--apricot-deep);
+  color: var(--charcoal);
+  text-decoration: none;
+}
+.admin-card .btn-danger {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
+.admin-card .btn-danger:hover,
+.admin-card .btn-danger:focus-visible {
+  background: #8A2323;   /* darker red */
+  border-color: #8A2323;
+  color: var(--white);
+}
+
+/* Places table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.admin-table th,
+.admin-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.admin-table th { font-weight: 600; }
+.admin-table td:last-child { white-space: nowrap; text-align: right; }
+.admin-table td:last-child a { margin-left: 0.75rem; }
+
+/* Textarea matches the input styling from the login card above */
+.admin-card textarea {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  color: var(--charcoal);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-card textarea:focus {
+  outline: none;
+  border-color: var(--apricot);
+  box-shadow: 0 0 0 3px rgba(242, 162, 92, 0.25);
 }
