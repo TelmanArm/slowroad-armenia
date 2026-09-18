@@ -70,7 +70,17 @@ jobs:
     steps:
       # Check out the repo so deploy/deploy.sh exists on the runner.
       - uses: actions/checkout@v4
-
+        
+      - name: Copy compose file to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: deploy/docker-compose.prod.yml
+          target: /opt/slowroad/
+          strip_components: 1
+      
       - name: SSH into EC2 and update the container
         uses: appleboy/ssh-action@v1
         # Pass IMAGE and SHA to the server; deploy.sh reads them from the env.

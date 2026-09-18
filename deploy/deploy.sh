@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# Deploys on EC2. Needs env vars: IMAGE and SHA.
+# Runs on EC2 over SSH. GitHub Actions passes IMAGE and SHA.
+# Stop on any error, and on unset variables.
 set -euo pipefail
 
-IMAGE_TAG="${IMAGE}:${SHA}"
+# The compose file and the .env file live here.
+cd /opt/slowroad
 
-# Get the new image
-docker pull "$IMAGE_TAG"
+# Make IMAGE and SHA visible to compose, so it can fill ${IMAGE}:${SHA}.
+export IMAGE SHA
 
-# Remove old container
-docker stop slowroad || true
-docker rm slowroad || true
+# Download the new app image built by CI.
+docker compose -f docker-compose.prod.yml pull app
 
-# Start new container (nginx-only, port 8080)
-docker run -d --name slowroad --restart unless-stopped \
-  -p 127.0.0.1:8080:8080 "$IMAGE_TAG"
+# Start or update the containers.
+# Only changed services are recreated, so the database keeps running.
+docker compose -f docker-compose.prod.yml up -d
 
-# Clean up old images
+# Delete old unused images, so the disk doesn't fill up.
 docker image prune -f
