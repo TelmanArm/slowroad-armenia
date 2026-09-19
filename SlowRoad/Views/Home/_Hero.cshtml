@@ -1,11 +1,17 @@
-@* ===== Home: full-width hero (background image is set in site.css → .hero) ===== *@
+@* ===== Home: full-width hero (photo + scrim; styles in site.css → .hero) ===== *@
 <section class="hero" id="home">
+    <img class="hero__bg"
+         src="~/images/hero-1584.webp"
+         srcset="/images/hero-900.webp 900w, /images/hero-1584.webp 1584w"
+         sizes="100vw"
+         width="1584" height="990"
+         fetchpriority="high" decoding="async" alt="" />
     <div class="hero__content">
         <span class="eyebrow">A slow travel guide</span>
-        <h1>Discover Armenia — the land of ancient monasteries, mountains and apricots</h1>
+        <h1>Discover Armenia</h1>
         <p>
-            One of the world's oldest Christian nations, a 6,000-year-old wine tradition, and
-            roads that wind from Lake Sevan to cliff-side monasteries. Take it slowly — you will see more.
+            The land of ancient monasteries, mountain roads and apricots — with a
+            6,000-year-old wine tradition. Take it slowly; you will see more.
         </p>
         <div class="hero__actions">
             <a class="btn btn--primary" href="#destinations">Explore destinations</a>

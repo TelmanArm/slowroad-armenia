@@ -313,36 +313,67 @@ section[id] { scroll-margin-top: var(--nav-height); }
 
 .hero {
   position: relative;
-  min-height: 78vh;
+  isolation: isolate;
+  overflow: hidden;
+  /* Tall enough to feel like a destination shot, capped so it never
+     swallows a large monitor or vanishes on a landscape phone. */
+  min-height: clamp(30rem, 76vh, 46rem);
   display: flex;
   align-items: center;
   color: var(--white);
   text-align: center;
-  /* Swap for a real photo: put it in wwwroot/images and change the path */
-  background: var(--blue) url("../images/hero.svg") center / cover no-repeat;
+  background: var(--blue);
 }
+/* The photo. An <img> rather than a CSS background so the browser
+   discovers it during HTML parse and can prioritise it (LCP). */
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Keeps the Cascade and Ararat in frame on wide crops. */
+  object-position: center 42%;
+}
+/* Scrim: strong enough for white text over a bright, busy illustration,
+   weighted to the bottom so the buttons stay legible. */
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(31, 58, 95, 0.45), rgba(31, 58, 95, 0.75));
+  z-index: -1;
+  background:
+    /* Vignette: darkens only behind the text block, so the photo stays
+       bright at the edges instead of being flattened everywhere. */
+    radial-gradient(ellipse 78% 62% at 50% 46%, rgba(12, 24, 42, 0.52), rgba(12, 24, 42, 0) 72%),
+    linear-gradient(180deg, rgba(20, 35, 58, 0.52) 0%, rgba(20, 35, 58, 0.46) 38%, rgba(14, 26, 45, 0.86) 100%);
 }
 .hero__content {
   position: relative;
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 6rem 1.25rem;
+  padding: 5rem 1.25rem;
 }
-.hero .eyebrow { color: var(--apricot); }
+/* A light apricot tint, not --apricot: the brand orange only reaches
+   2.9:1 on the scrim, this clears the 4.5:1 minimum for small text. */
+.hero .eyebrow { color: #FFE3C4; }
 .hero h1 {
   color: var(--white);
-  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-size: clamp(2.8rem, 7vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   margin-bottom: 1rem;
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(10, 20, 35, 0.35);
 }
 .hero p {
-  font-size: 1.15rem;
-  opacity: 0.94;
-  margin-bottom: 2rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.6;
+  max-width: 52ch;
+  margin: 0 auto 2rem;
+  opacity: 0.95;
+  text-wrap: pretty;
 }
 .hero__actions {
   display: flex;
@@ -376,8 +407,9 @@ section[id] { scroll-margin-top: var(--nav-height); }
 .card figure { margin: 0; }
 .card img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
+  background: var(--line);
 }
 .card__body { padding: 1.25rem 1.4rem 1.5rem; }
 .card__region {
@@ -708,7 +740,7 @@ section[id] { scroll-margin-top: var(--nav-height); }
   .why-grid { grid-template-columns: repeat(3, 1fr); }
   .info-grid { grid-template-columns: repeat(3, 1fr); }
   .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
-  .hero { min-height: 84vh; }
+  .hero { min-height: clamp(34rem, 80vh, 48rem); }
 }
 
 /* =====================================================================
