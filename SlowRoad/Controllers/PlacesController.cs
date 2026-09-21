@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SlowRoad.Data;
@@ -5,6 +6,7 @@ using SlowRoad.Models;
 
 namespace SlowRoad.Controllers;
 
+[Authorize]
 public class PlacesController : Controller
 {
     private readonly AppDbContext _db;
