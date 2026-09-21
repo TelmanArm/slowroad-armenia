@@ -21,7 +21,7 @@ public class Section
 
     public int SortOrder { get; set; }
 
-    public bool IsPublished { get; set; }
+    public bool IsPublished { get; set; } = true;
 
     public ICollection<SectionItem> Items { get; set; } = new List<SectionItem>();
 }

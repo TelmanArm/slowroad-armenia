@@ -23,7 +23,7 @@ public abstract class ContentItem
     [StringLength(2000)]
     public string? Description { get; set; }
 
-    public bool IsPublished { get; set; }
+    public bool IsPublished { get; set; } = true;
 
     public ICollection<Photo> Photos { get; set; } = new List<Photo>();
 }
