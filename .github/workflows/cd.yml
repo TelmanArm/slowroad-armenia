@@ -79,7 +79,7 @@ jobs:
         
       - name: Generate migration script
         run: |
-          dotnet tool install --global dotnet-ef --version 9.*
+          dotnet tool restore
           dotnet ef migrations script --idempotent \
             --project SlowRoad/SlowRoad.csproj \
             --output deploy/migrate.sql 
