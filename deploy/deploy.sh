@@ -18,7 +18,8 @@ backup_db() {
   # db must be up AND accepting connections before we dump it
   docker compose -f docker-compose.prod.yml up -d --wait db
 
-  local file="backups/$(date +%F-%H%M%S).sql"
+  BACKUP_FILE="backups/$(date +%F-%H%M%S).sql"
+  local file="$BACKUP_FILE"
 
   # dump to .tmp; set -e aborts the deploy if pg_dump fails
   docker compose -f docker-compose.prod.yml exec -T db \
@@ -32,6 +33,24 @@ backup_db() {
   ls -t backups/*.sql | tail -n +3 | xargs -r rm --
 }
 
+upload_backup() {
+  local bucket
+  bucket="$(grep -m1 '^BACKUP_BUCKET=' .env | cut -d= -f2- || true)"
+
+  if [ -z "$bucket" ]; then
+    echo "WARNING: BACKUP_BUCKET not set in .env — skipping S3 upload" >&2
+    return 0
+  fi
+
+  local key="postgres/$(basename "$BACKUP_FILE").gz"
+
+  if gzip -c "$BACKUP_FILE" | aws s3 cp - "s3://$bucket/$key"; then
+    echo "uploaded: s3://$bucket/$key"
+  else
+    echo "WARNING: S3 upload failed — local backup still at $BACKUP_FILE" >&2
+  fi
+}
+
 migrate_db() {
   echo "applying migrations..."
   docker compose -f docker-compose.prod.yml exec -T db \
@@ -41,6 +60,7 @@ migrate_db() {
 }
 
 backup_db
+upload_backup
 migrate_db
 
 # Download the new app image built by CI.
