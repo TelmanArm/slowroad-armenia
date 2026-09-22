@@ -9,6 +9,31 @@ cd /opt/slowroad
 # Make IMAGE and SHA visible to compose, so it can fill ${IMAGE}:${SHA}.
 export IMAGE SHA
 
+backup_db() {
+  mkdir -p backups
+
+  # clear leftovers from a previous failed dump
+  rm -f backups/*.sql.tmp
+
+  # db must be up AND accepting connections before we dump it
+  docker compose -f docker-compose.prod.yml up -d --wait db
+
+  local file="backups/$(date +%F-%H%M%S).sql"
+
+  # dump to .tmp; set -e aborts the deploy if pg_dump fails
+  docker compose -f docker-compose.prod.yml exec -T db \
+    sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > "$file.tmp"
+
+  # only a successful dump becomes a real .sql file
+  mv "$file.tmp" "$file"
+  echo "backup: $file ($(du -h "$file" | cut -f1))"
+
+  # keep the last 2, delete older ones
+  ls -t backups/*.sql | tail -n +3 | xargs -r rm --
+}
+
+backup_db
+
 # Download the new app image built by CI.
 docker compose -f docker-compose.prod.yml pull app
 
