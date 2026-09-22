@@ -32,7 +32,16 @@ backup_db() {
   ls -t backups/*.sql | tail -n +3 | xargs -r rm --
 }
 
+migrate_db() {
+  echo "applying migrations..."
+  docker compose -f docker-compose.prod.yml exec -T db \
+    sh -c 'psql -v ON_ERROR_STOP=1 \
+             -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < migrate.sql
+  echo "migrations applied"
+}
+
 backup_db
+migrate_db
 
 # Download the new app image built by CI.
 docker compose -f docker-compose.prod.yml pull app
