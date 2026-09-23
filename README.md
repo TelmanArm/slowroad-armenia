@@ -3,7 +3,7 @@
 A travel guide to Armenia — built with ASP.NET Core MVC and shipped to AWS EC2
 through a fully automated Docker + GitHub Actions pipeline.
 
-**Live:** [slowroadarmenia.com](https://slowroadarmenia.com/)
+### 🌐 Live: [slowroadarmenia.com](https://slowroadarmenia.com/)
 
 ---
 
@@ -66,37 +66,13 @@ except through nginx.
 
 Multi-stage build: the SDK image restores and publishes, the slim ASP.NET
 runtime image carries only the published output — smaller image, no build tools
-in production.
-
-```bash
-docker build -t slowroad .
-docker run -p 8080:8080 slowroad
-# → http://localhost:8080
-```
-
-> [!NOTE]
-> The app needs Postgres. For a full local stack, use **Run locally** below.
-
----
-
-## Run locally
-
-```bash
-docker compose up -d db                        # Postgres 16 on :5432
-dotnet tool restore                            # installs dotnet-ef
-dotnet ef database update --project SlowRoad   # create/update schema
-dotnet run --project SlowRoad
-```
-
-- **Connection string:** `appsettings.Development.json`
-- **Admin login:** set `Admin:Email` and `Admin:Password` with `dotnet user-secrets`
+in production. The app needs Postgres to run.
 
 ---
 
 ## Configuration
 
-> [!IMPORTANT]
-> Secrets are never committed.
+Secrets are never committed.
 
 **GitHub repo secrets**
 `EC2_HOST` · `EC2_USER` · `EC2_SSH_KEY`
@@ -105,42 +81,31 @@ dotnet run --project SlowRoad
 `POSTGRES_USER` · `POSTGRES_PASSWORD` · `POSTGRES_DB` ·
 `ConnectionStrings__Default` · `Admin__Email` · `Admin__Password` · `BACKUP_BUCKET`
 
+Locally, the connection string lives in `appsettings.Development.json`, and the
+admin login (`Admin:Email` / `Admin:Password`) is set via `dotnet user-secrets`.
+
 ---
 
 ## Database & migrations
 
-- **New migration** — `dotnet ef migrations add <Name> --project SlowRoad`
-- **On deploy** — CD generates an idempotent SQL script and applies it
-  **after** a backup and **before** the new app starts.
+On deploy, CD generates an idempotent SQL script and applies it **after** a
+backup and **before** the new app starts.
 
 ---
 
 ## Backups
 
-- **Automatic** before every deploy (`backup.sh deploy`)
-- **Manual** on EC2 — `bash /opt/slowroad/backup.sh manual`
+- **Automatic** before every deploy
+- **Manual** runs available on EC2
 - Stored gzipped in `s3://$BACKUP_BUCKET/postgres/`; last 2 kept on the server
 
 ---
 
 ## Rollback
 
-```bash
-cd /opt/slowroad
-IMAGE=ghcr.io/telmanarm/slowroad-armenia SHA=<old-sha> \
-  docker compose -f docker-compose.prod.yml up -d app
-```
-
-> [!WARNING]
-> Migrations are not rolled back. If the schema changed, restore from a backup.
-
----
-
-## Tests
-
-```bash
-dotnet test
-```
+Deploys are pinned to the exact commit SHA image, so an older SHA can be brought
+back. Migrations are **not** rolled back — if the schema changed, restore from a
+backup.
 
 ---
 
