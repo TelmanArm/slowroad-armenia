@@ -31,6 +31,16 @@ public class DestinationsPageTests : IClassFixture<TestAppFactory>
             });
             db.SaveChanges();
         }
+
+        // A second place with several photos → the page shows the photo slider.
+        if (!db.Places.Any(p => p.Slug == "test-garni"))
+        {
+            var garni = new Place { Name = "Test Garni", Slug = "test-garni", Region = "Kotayk" };
+            garni.Photos.Add(new Photo { Alt = "Temple", SortOrder = 0 });
+            garni.Photos.Add(new Photo { Alt = "Gorge", SortOrder = 1 });
+            db.Places.Add(garni);
+            db.SaveChanges();
+        }
     }
 
     [Fact] // a known slug renders the page with the place name
@@ -43,6 +53,14 @@ public class DestinationsPageTests : IClassFixture<TestAppFactory>
         var html = await response.Content.ReadAsStringAsync();
         Assert.Contains("Test Dilijan", html);
         Assert.Contains("Haghartsin Monastery", html);
+    }
+
+    [Fact] // a place with more than one photo gets the slider
+    public async Task PlaceWithPhotos_ShowsSlider()
+    {
+        var client = _factory.CreateClient();
+        var html = await client.GetStringAsync("/destinations/test-garni");
+        Assert.Contains("data-slider", html);
     }
 
     [Fact] // an unknown slug is a 404, not an error page

@@ -2,31 +2,90 @@
 @{
     ViewData["Title"] = "Edit place";
     ViewData["CardClass"] = "admin-card--wide";
-    var currentPhotoId = Model.Photos.OrderBy(p => p.SortOrder).FirstOrDefault()?.Id;
+    var photos = Model.Photos.OrderBy(p => p.SortOrder).ThenBy(p => p.Id).ToList();
 }
 
 <h1>Edit place</h1>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post" id="editForm" enctype="multipart/form-data">
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" id="editForm">
     <partial name="_PlaceForm" model="Model" />
-
-    <div>
-        <label>Photo</label>
-        @if (currentPhotoId is int pid)
-        {
-            <img id="currentPhoto" src="/photos/@pid/700" alt="Current photo"
-                 style="display:block;max-width:280px;height:auto;border-radius:8px;margin:.4rem 0" />
-        }
-        else
-        {
-            <p><em>No photo yet.</em></p>
-        }
-        <input type="file" name="photo" id="photo" accept="image/*" />
-        @Html.ValidationMessage("photo")
-    </div>
 
     <button type="submit" class="btn">Save</button>
     <a asp-action="Index" id="closeBtn" class="admin-back">Close</a>
+</form>
+
+@* ================= Photos =================
+   The first photo is the MAIN photo: it is used on the home page card and as
+   the big photo at the top of the detail page. All photos are shown in the
+   slider on the detail page. Each button below is its own small form, so the
+   text fields above are not affected (save them first). *@
+<h2 class="admin-subhead" id="photos">Photos</h2>
+
+@if (TempData["PhotoMessage"] is string msg)
+{
+    <p class="admin-flash">@msg</p>
+}
+@if (TempData["PhotoError"] is string err)
+{
+    <p class="admin-flash admin-flash--error">@err</p>
+}
+
+@if (photos.Count == 0)
+{
+    <p><em>No photos yet. The first photo you add becomes the main photo.</em></p>
+}
+else
+{
+    <p class="admin-hint">The first photo is the <strong>main photo</strong> (home page and top of the place page). Use the arrows to change the order.</p>
+    <ul class="admin-photos">
+        @for (var i = 0; i < photos.Count; i++)
+        {
+            var ph = photos[i];
+            <li class="admin-photo @(i == 0 ? "admin-photo--main" : "")">
+                <img src="/photos/@ph.Id/700" alt="@ph.Alt" loading="lazy" />
+                @if (i == 0)
+                {
+                    <span class="admin-photo__badge">Main</span>
+                }
+                <div class="admin-photo__actions">
+                    @if (i > 0)
+                    {
+                        <form asp-action="MovePhoto" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="photoId" value="@ph.Id" />
+                            <input type="hidden" name="step" value="-1" />
+                            <button type="submit" title="Move left" aria-label="Move left">←</button>
+                        </form>
+                    }
+                    @if (i < photos.Count - 1)
+                    {
+                        <form asp-action="MovePhoto" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="photoId" value="@ph.Id" />
+                            <input type="hidden" name="step" value="1" />
+                            <button type="submit" title="Move right" aria-label="Move right">→</button>
+                        </form>
+                    }
+                    @if (i > 0)
+                    {
+                        <form asp-action="MakeMainPhoto" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="photoId" value="@ph.Id" />
+                            <button type="submit">Make main</button>
+                        </form>
+                    }
+                    <form asp-action="DeletePhoto" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Delete this photo?');">
+                        <input type="hidden" name="photoId" value="@ph.Id" />
+                        <button type="submit" class="admin-photo__delete">Delete</button>
+                    </form>
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+<form asp-action="AddPhotos" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="admin-upload">
+    <label for="photos">Add photos (you can pick several at once)</label>
+    <input type="file" name="photos" id="photos" accept="image/*" multiple required />
+    <button type="submit" class="btn">Upload</button>
 </form>
 
 @section Scripts {
@@ -36,50 +95,48 @@
         (function () {
             var form = document.getElementById('editForm');
             var closeBtn = document.getElementById('closeBtn');
-            var fileInput = document.getElementById('photo');
-            var preview = document.getElementById('currentPhoto');
             var listUrl = closeBtn.getAttribute('href');
-            var saving = false;
-            var fileChanged = false;
+            var leaving = false;
 
             // Snapshot of the text fields as first loaded, to detect changes.
             function serialize() {
                 var parts = [];
-                new FormData(form).forEach(function (v, k) {
-                    if (k !== 'photo') parts.push(k + '=' + v);
-                });
+                new FormData(form).forEach(function (v, k) { parts.push(k + '=' + v); });
                 return parts.join('&');
             }
             var initial = serialize();
-            function isDirty() { return fileChanged || serialize() !== initial; }
+            function isDirty() { return serialize() !== initial; }
 
-            // Choosing a file counts as a change and previews the new image.
-            if (fileInput) {
-                fileInput.addEventListener('change', function () {
-                    fileChanged = fileInput.files.length > 0;
-                    if (fileChanged && preview) {
-                        preview.src = URL.createObjectURL(fileInput.files[0]);
+            // Save submits normally.
+            form.addEventListener('submit', function () { leaving = true; });
+
+            // Photo buttons reload the page, so unsaved text edits would be lost: warn first.
+            document.querySelectorAll('form:not(#editForm)').forEach(function (f) {
+                f.addEventListener('submit', function (e) {
+                    if (isDirty() && !confirm('Your text changes are not saved yet and will be lost. Continue?')) {
+                        e.preventDefault();
+                        return;
                     }
+                    leaving = true;
                 });
-            }
-
-            // Save button submits normally; mark so we don't double-prompt.
-            form.addEventListener('submit', function () { saving = true; });
+            });
 
             // Close: if there are unsaved edits, ask whether to save first.
             closeBtn.addEventListener('click', function (e) {
                 if (!isDirty()) return; // nothing changed → just close (follow link)
                 e.preventDefault();
                 if (confirm('You have unsaved changes. Save them before closing?')) {
+                    leaving = true;
                     form.submit();                 // save → redirects back to the list
                 } else {
+                    leaving = true;
                     window.location.href = listUrl; // discard changes and close
                 }
             });
 
-            // Safety net for the browser's back/refresh/close, unless we're saving.
+            // Safety net for the browser's back/refresh/close.
             window.addEventListener('beforeunload', function (e) {
-                if (saving || !isDirty()) return;
+                if (leaving || !isDirty()) return;
                 e.preventDefault();
                 e.returnValue = '';
             });
