@@ -1,6 +1,7 @@
 @model PlaceCardViewModel
 @* Shared destination card. Images are served by PhotosController at
-   /photos/{photoId}/{width}. *@
+   /photos/{photoId}/{width}. The title link is stretched over the whole card
+   (see .card__link in site.css), so clicking anywhere opens the detail page. *@
 <article class="card">
     <figure><img src="/photos/@Model.PhotoId/700"
              srcset="/photos/@Model.PhotoId/700 700w, /photos/@Model.PhotoId/1400 1400w"
@@ -9,7 +10,14 @@
              alt="@Model.Alt" /></figure>
     <div class="card__body">
         <span class="card__region">@Model.Region</span>
-        <h3>@Model.Name</h3>
+        @if (!string.IsNullOrEmpty(Model.Slug))
+        {
+            <h3><a class="card__link" asp-controller="Destinations" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Name</a></h3>
+        }
+        else
+        {
+            <h3>@Model.Name</h3>
+        }
         <p>@Model.Body</p>
     </div>
 </article>

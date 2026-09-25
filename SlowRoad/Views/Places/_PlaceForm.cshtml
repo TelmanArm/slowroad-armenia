@@ -15,7 +15,71 @@
 </div>
 
 <div>
+    <label asp-for="ShortDescription"></label>
+    <input asp-for="ShortDescription" />
+    <span asp-validation-for="ShortDescription"></span>
+</div>
+
+<div>
     <label asp-for="Description"></label>
     <textarea asp-for="Description" rows="6"></textarea>
     <span asp-validation-for="Description"></span>
+</div>
+
+@* ---- Detail page (/destinations/{slug}). Everything below is optional:
+       empty fields are simply not shown on the page. ---- *@
+<h2 class="admin-subhead">Detail page</h2>
+
+<div>
+    <label asp-for="Body"></label>
+    <textarea asp-for="Body" rows="10"></textarea>
+    <span asp-validation-for="Body"></span>
+</div>
+
+<div>
+    <label asp-for="Highlights"></label>
+    <textarea asp-for="Highlights" rows="5"></textarea>
+    <span asp-validation-for="Highlights"></span>
+</div>
+
+<div>
+    <label asp-for="GettingThere"></label>
+    <textarea asp-for="GettingThere" rows="4"></textarea>
+    <span asp-validation-for="GettingThere"></span>
+</div>
+
+<div>
+    <label asp-for="Tips"></label>
+    <textarea asp-for="Tips" rows="5"></textarea>
+    <span asp-validation-for="Tips"></span>
+</div>
+
+<div>
+    <label asp-for="DistanceFromYerevan"></label>
+    <input asp-for="DistanceFromYerevan" placeholder="e.g. 100 km · about 1h 40m by car" />
+    <span asp-validation-for="DistanceFromYerevan"></span>
+</div>
+
+<div>
+    <label asp-for="TimeNeeded"></label>
+    <input asp-for="TimeNeeded" placeholder="e.g. 1–2 days" />
+    <span asp-validation-for="TimeNeeded"></span>
+</div>
+
+<div>
+    <label asp-for="BestTime"></label>
+    <input asp-for="BestTime" placeholder="e.g. May – October" />
+    <span asp-validation-for="BestTime"></span>
+</div>
+
+<div>
+    <label asp-for="Latitude"></label>
+    <input asp-for="Latitude" type="number" step="any" placeholder="e.g. 40.7406" />
+    <span asp-validation-for="Latitude"></span>
+</div>
+
+<div>
+    <label asp-for="Longitude"></label>
+    <input asp-for="Longitude" type="number" step="any" placeholder="e.g. 44.8631" />
+    <span asp-validation-for="Longitude"></span>
 </div>

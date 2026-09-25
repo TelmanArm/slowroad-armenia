@@ -1,0 +1,237 @@
+@model PlaceDetailsViewModel
+@using System.Globalization
+@using System.Text.Json
+@{
+    var p = Model.Place;
+    var hero = Model.Photos.FirstOrDefault();
+    var gallery = Model.Photos.Skip(1).ToList();
+    var lead = p.ShortDescription ?? p.Description;
+
+    // Full story: use Body if filled in, otherwise fall back to Description
+    // (skipped when it is already shown as the lead).
+    var storyText = !string.IsNullOrWhiteSpace(p.Body) ? p.Body
+                  : p.Description != lead ? p.Description : null;
+    var story = PlaceDetailsViewModel.Paragraphs(storyText).ToList();
+    var highlights = PlaceDetailsViewModel.Lines(p.Highlights).ToList();
+    var gettingThere = PlaceDetailsViewModel.Paragraphs(p.GettingThere).ToList();
+    var tips = PlaceDetailsViewModel.Lines(p.Tips).ToList();
+
+    var hasMap = p.Latitude is not null && p.Longitude is not null;
+    string F(double v) => v.ToString("0.######", CultureInfo.InvariantCulture);
+    var lat = hasMap ? F(p.Latitude!.Value) : "";
+    var lon = hasMap ? F(p.Longitude!.Value) : "";
+    var bbox = hasMap
+        ? $"{F(p.Longitude!.Value - 0.06)},{F(p.Latitude!.Value - 0.035)},{F(p.Longitude!.Value + 0.06)},{F(p.Latitude!.Value + 0.035)}"
+        : "";
+
+    var pageUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
+    var heroUrl = hero is null ? null : $"{Context.Request.Scheme}://{Context.Request.Host}/photos/{hero.Id}/1400";
+
+    ViewData["Title"] = p.Name;
+    ViewData["Description"] = lead ?? $"{p.Name} — a travel guide for first-time visitors to Armenia.";
+
+    // Structured data (schema.org) so search engines understand this is a
+    // tourist attraction. Empty values are simply left out.
+    var ld = new Dictionary<string, object>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "TouristAttraction",
+        ["name"] = p.Name,
+        ["url"] = pageUrl,
+        ["address"] = new Dictionary<string, object>
+        {
+            ["@type"] = "PostalAddress",
+            ["addressRegion"] = p.Region ?? "",
+            ["addressCountry"] = "AM",
+        },
+    };
+    if (!string.IsNullOrEmpty(lead)) ld["description"] = lead;
+    if (heroUrl is not null) ld["image"] = heroUrl;
+    if (hasMap)
+    {
+        ld["geo"] = new Dictionary<string, object>
+        {
+            ["@type"] = "GeoCoordinates",
+            ["latitude"] = p.Latitude!.Value,
+            ["longitude"] = p.Longitude!.Value,
+        };
+    }
+    var jsonLd = JsonSerializer.Serialize(ld);
+}
+
+@section Head {
+    <link rel="canonical" href="@pageUrl" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="@p.Name – The Slow Road Armenia" />
+    <meta property="og:description" content="@ViewData["Description"]" />
+    <meta property="og:url" content="@pageUrl" />
+    @if (heroUrl is not null)
+    {
+        <meta property="og:image" content="@heroUrl" />
+    }
+    <script type="application/ld+json">@Html.Raw(jsonLd.Replace("</", "<\\/"))</script>
+}
+
+@* ===== Hero: big photo, name, region ===== *@
+<section class="hero hero--place">
+    @if (hero is not null)
+    {
+        <img class="hero__bg" src="/photos/@hero.Id/1400"
+             srcset="/photos/@hero.Id/700 700w, /photos/@hero.Id/1400 1400w"
+             sizes="100vw" width="1584" height="990"
+             fetchpriority="high" decoding="async" alt="@(hero.Alt ?? p.Name)" />
+    }
+    <div class="container hero__content">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">›</span>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="destinations">Destinations</a>
+            <span aria-hidden="true">›</span>
+            <span aria-current="page">@p.Name</span>
+        </nav>
+        @if (!string.IsNullOrEmpty(p.Region))
+        {
+            <span class="eyebrow">@p.Region</span>
+        }
+        <h1>@p.Name</h1>
+        @if (!string.IsNullOrEmpty(lead))
+        {
+            <p>@lead</p>
+        }
+    </div>
+</section>
+
+@* ===== Main article + "At a glance" sidebar ===== *@
+<section class="section">
+    <div class="container place-layout">
+        <article class="place-article">
+            @if (story.Count > 0)
+            {
+                <h2>About @p.Name</h2>
+                @foreach (var para in story)
+                {
+                    <p>@para</p>
+                }
+            }
+
+            @if (highlights.Count > 0)
+            {
+                <h2>Highlights</h2>
+                <ul class="place-highlights">
+                    @foreach (var h in highlights)
+                    {
+                        <li>@h</li>
+                    }
+                </ul>
+            }
+
+            @if (gettingThere.Count > 0)
+            {
+                <h2 id="getting-there">Getting there</h2>
+                @foreach (var para in gettingThere)
+                {
+                    <p>@para</p>
+                }
+            }
+
+            @if (tips.Count > 0)
+            {
+                <h2>Practical tips</h2>
+                <div class="info-card">
+                    <ul>
+                        @foreach (var t in tips)
+                        {
+                            <li>@t</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </article>
+
+        <aside class="place-facts" aria-label="At a glance">
+            <h2>At a glance</h2>
+            <dl>
+                @if (!string.IsNullOrEmpty(p.Region))
+                {
+                    <dt>Region</dt><dd>@p.Region</dd>
+                }
+                @if (!string.IsNullOrEmpty(p.DistanceFromYerevan))
+                {
+                    <dt>From Yerevan</dt><dd>@p.DistanceFromYerevan</dd>
+                }
+                @if (!string.IsNullOrEmpty(p.TimeNeeded))
+                {
+                    <dt>Time needed</dt><dd>@p.TimeNeeded</dd>
+                }
+                @if (!string.IsNullOrEmpty(p.BestTime))
+                {
+                    <dt>Best time</dt><dd>@p.BestTime</dd>
+                }
+            </dl>
+            @if (hasMap)
+            {
+                <a class="btn btn--primary place-facts__btn" rel="noopener" target="_blank"
+                   href="https://www.google.com/maps/dir/?api=1&amp;destination=@lat,@lon">Get directions</a>
+            }
+            <a class="btn btn--outline place-facts__btn" asp-controller="Home" asp-action="Index" asp-fragment="plan">Plan your trip</a>
+        </aside>
+    </div>
+</section>
+
+@* ===== More photos ===== *@
+@if (gallery.Count > 0)
+{
+    <section class="section section--sand">
+        <div class="container">
+            <h2>Photos</h2>
+            <div class="place-gallery">
+                @foreach (var ph in gallery)
+                {
+                    <a href="/photos/@ph.Id/1400" target="_blank" rel="noopener">
+                        <img src="/photos/@ph.Id/700" width="1584" height="990"
+                             loading="lazy" decoding="async" alt="@(ph.Alt ?? p.Name)" />
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* ===== Map (OpenStreetMap embed — free, no API key) ===== *@
+@if (hasMap)
+{
+    <section class="section section--white">
+        <div class="container">
+            <h2>On the map</h2>
+            <div class="place-map">
+                <iframe title="Map of @p.Name" loading="lazy"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=@bbox&amp;layer=mapnik&amp;marker=@lat,@lon"></iframe>
+            </div>
+            <p class="place-map__link">
+                <a rel="noopener" target="_blank" href="https://www.openstreetmap.org/?mlat=@lat&amp;mlon=@lon#map=12/@lat/@lon">View larger map</a>
+            </p>
+        </div>
+    </section>
+}
+
+@* ===== More places ===== *@
+@if (Model.MorePlaces.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Keep exploring</span>
+                <h2>@Model.MorePlacesTitle</h2>
+            </div>
+            <div class="card-grid">
+                @foreach (var card in Model.MorePlaces)
+                {
+                    <partial name="~/Views/Home/_PlaceCard.cshtml" model="card" />
+                }
+            </div>
+            <p class="section-foot">
+                <a class="btn btn--outline" asp-controller="Home" asp-action="Index" asp-fragment="destinations">All destinations</a>
+            </p>
+        </div>
+    </section>
+}
