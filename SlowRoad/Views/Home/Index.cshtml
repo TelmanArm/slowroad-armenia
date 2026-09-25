@@ -1,3 +1,4 @@
+@model Dictionary<string, Section>
 @{
     ViewData["Title"] = "Discover Armenia";
     ViewData["Description"] = "Discover Armenia — the land of ancient monasteries, mountains and apricots. Top destinations, trip planning, food and culture for first-time visitors.";
@@ -7,12 +8,20 @@
     The whole guide lives on this one page, split into partial views
     (Views/Home/_*.cshtml) so each section is easy to edit on its own.
     Each section has an id that the navigation links point to.
+
+    Featured and Destinations are data-driven: they render only when their
+    section is present (published) in the model.
 *@
 
 <partial name="_Hero" />
-<partial name="_Featured" />
+@if (Model.TryGetValue("featured", out var featured))
+{
+    <partial name="_Featured" model="featured" />
+}
 <partial name="_WhyVisit" />
-<partial name="_Destinations" />
+@if (Model.TryGetValue("destinations", out var destinations))
+{
+    <partial name="_Destinations" model="destinations" />
+}
 <partial name="_Plan" />
-<partial name="_FoodCulture" />
 <partial name="_About" />

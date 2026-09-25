@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace SlowRoad.Tests;
 
-// Starts the whole app in memory and calls its pages (smoke test)
-public class HomePageTests : IClassFixture<WebApplicationFactory<Program>>
+// Starts the whole app in memory (with an in-memory database) and calls its
+// pages (smoke test)
+public class HomePageTests : IClassFixture<TestAppFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestAppFactory _factory;
 
-    public HomePageTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public HomePageTests(TestAppFactory factory) => _factory = factory;
 
     [Fact] // homepage "/" should load without error
     public async Task Homepage_ReturnsSuccess()

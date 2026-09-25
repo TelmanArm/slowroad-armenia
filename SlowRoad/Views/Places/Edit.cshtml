@@ -2,17 +2,87 @@
 @{
     ViewData["Title"] = "Edit place";
     ViewData["CardClass"] = "admin-card--wide";
+    var currentPhotoId = Model.Photos.OrderBy(p => p.SortOrder).FirstOrDefault()?.Id;
 }
 
 <h1>Edit place</h1>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" id="editForm" enctype="multipart/form-data">
     <partial name="_PlaceForm" model="Model" />
+
+    <div>
+        <label>Photo</label>
+        @if (currentPhotoId is int pid)
+        {
+            <img id="currentPhoto" src="/photos/@pid/700" alt="Current photo"
+                 style="display:block;max-width:280px;height:auto;border-radius:8px;margin:.4rem 0" />
+        }
+        else
+        {
+            <p><em>No photo yet.</em></p>
+        }
+        <input type="file" name="photo" id="photo" accept="image/*" />
+        @Html.ValidationMessage("photo")
+    </div>
+
     <button type="submit" class="btn">Save</button>
-    <a asp-action="Index">Cancel</a>
+    <a asp-action="Index" id="closeBtn" class="admin-back">Close</a>
 </form>
 
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var form = document.getElementById('editForm');
+            var closeBtn = document.getElementById('closeBtn');
+            var fileInput = document.getElementById('photo');
+            var preview = document.getElementById('currentPhoto');
+            var listUrl = closeBtn.getAttribute('href');
+            var saving = false;
+            var fileChanged = false;
+
+            // Snapshot of the text fields as first loaded, to detect changes.
+            function serialize() {
+                var parts = [];
+                new FormData(form).forEach(function (v, k) {
+                    if (k !== 'photo') parts.push(k + '=' + v);
+                });
+                return parts.join('&');
+            }
+            var initial = serialize();
+            function isDirty() { return fileChanged || serialize() !== initial; }
+
+            // Choosing a file counts as a change and previews the new image.
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    fileChanged = fileInput.files.length > 0;
+                    if (fileChanged && preview) {
+                        preview.src = URL.createObjectURL(fileInput.files[0]);
+                    }
+                });
+            }
+
+            // Save button submits normally; mark so we don't double-prompt.
+            form.addEventListener('submit', function () { saving = true; });
+
+            // Close: if there are unsaved edits, ask whether to save first.
+            closeBtn.addEventListener('click', function (e) {
+                if (!isDirty()) return; // nothing changed → just close (follow link)
+                e.preventDefault();
+                if (confirm('You have unsaved changes. Save them before closing?')) {
+                    form.submit();                 // save → redirects back to the list
+                } else {
+                    window.location.href = listUrl; // discard changes and close
+                }
+            });
+
+            // Safety net for the browser's back/refresh/close, unless we're saving.
+            window.addEventListener('beforeunload', function (e) {
+                if (saving || !isDirty()) return;
+                e.preventDefault();
+                e.returnValue = '';
+            });
+        })();
+    </script>
 }

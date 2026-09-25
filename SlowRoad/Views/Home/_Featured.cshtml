@@ -1,94 +1,28 @@
-@* ===== Home: intro + 6 featured destinations ===== *@
+@model Section
+@* ===== Home: intro + featured destinations (from the database) ===== *@
 <section class="section" id="featured">
     <div class="container">
         <div class="section-head section-head--center">
-            <span class="eyebrow">Start here</span>
-            <h2>Six places to see first</h2>
-            <p class="lead">
-                Armenia is small enough to cross in a day but deep enough to fill a lifetime.
-                These six stops give a first-time visitor the country's essentials: the capital,
-                a pagan temple, rock-cut monasteries, a mountain lake, and the view of Mount Ararat.
-            </p>
+            <span class="eyebrow">@Model.Eyebrow</span>
+            <h2>@Model.Title</h2>
+            <p class="lead">@Model.Lead</p>
         </div>
 
         <div class="card-grid">
-            <article class="card">
-                <figure><img src="~/images/yerevan-700.webp"
-                         srcset="/images/yerevan-700.webp 700w, /images/yerevan-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="Republic Square and the pink tuff buildings of central Yerevan" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Capital</span>
-                    <h3>Yerevan</h3>
-                    <p>Pink-stone boulevards, Republic Square, the Cascade steps and a café culture that runs late into the night.</p>
-                </div>
-            </article>
-
-            <article class="card">
-                <figure><img src="~/images/garni-700.webp"
-                         srcset="/images/garni-700.webp 700w, /images/garni-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="The colonnaded Greco-Roman temple of Garni above the Azat gorge" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Kotayk</span>
-                    <h3>Garni Temple</h3>
-                    <p>A 1st-century Greco-Roman temple — the only standing colonnaded temple of its kind in the region.</p>
-                </div>
-            </article>
-
-            <article class="card">
-                <figure><img src="~/images/geghard-700.webp"
-                         srcset="/images/geghard-700.webp 700w, /images/geghard-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="Geghard Monastery carved into the cliffs of the Azat valley" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Kotayk · UNESCO</span>
-                    <h3>Geghard Monastery</h3>
-                    <p>A medieval monastery partly carved straight out of the mountain, with chapels that sing with natural acoustics.</p>
-                </div>
-            </article>
-
-            <article class="card">
-                <figure><img src="~/images/sevan-700.webp"
-                         srcset="/images/sevan-700.webp 700w, /images/sevan-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="Sevanavank monastery on a peninsula above the blue waters of Lake Sevan" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Gegharkunik</span>
-                    <h3>Lake Sevan</h3>
-                    <p>A vast high-altitude lake at about 1,900 m, with the Sevanavank monastery on its peninsula and beaches in summer.</p>
-                </div>
-            </article>
-
-            <article class="card">
-                <figure><img src="~/images/tatev-700.webp"
-                         srcset="/images/tatev-700.webp 700w, /images/tatev-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="Tatev Monastery on the edge of the Vorotan gorge with the cable car approaching" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Syunik</span>
-                    <h3>Tatev Monastery</h3>
-                    <p>A 9th-century monastery perched over the Vorotan gorge, reached by the record-setting Wings of Tatev cableway.</p>
-                </div>
-            </article>
-
-            <article class="card">
-                <figure><img src="~/images/khor-virap-700.webp"
-                         srcset="/images/khor-virap-700.webp 700w, /images/khor-virap-1400.webp 1400w"
-                         sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
-                         width="1584" height="990" loading="lazy" decoding="async"
-                         alt="Khor Virap monastery with snow-capped Mount Ararat behind it" /></figure>
-                <div class="card__body">
-                    <span class="card__region">Ararat</span>
-                    <h3>Khor Virap</h3>
-                    <p>The classic postcard: a hilltop monastery framed by Mount Ararat, and the pit where St Gregory the Illuminator was imprisoned.</p>
-                </div>
-            </article>
+            @foreach (var si in Model.Items)
+            {
+                var item = si.Item;
+                var photo = item.Photos.FirstOrDefault();
+                var card = new PlaceCardViewModel
+                {
+                    PhotoId = photo?.Id ?? 0,
+                    Alt = photo?.Alt,
+                    Region = item.Region,
+                    Name = item.Name,
+                    Body = item.ShortDescription ?? item.Description,
+                };
+                <partial name="_PlaceCard" model="card" />
+            }
         </div>
 
         <p class="section-foot">
