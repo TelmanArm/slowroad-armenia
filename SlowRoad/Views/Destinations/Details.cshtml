@@ -4,7 +4,6 @@
 @{
     var p = Model.Place;
     var hero = Model.Photos.FirstOrDefault();
-    var gallery = Model.Photos.Skip(1).ToList();
     var lead = p.ShortDescription ?? p.Description;
 
     // Full story: use Body if filled in, otherwise fall back to Description
@@ -178,20 +177,43 @@
     </div>
 </section>
 
-@* ===== More photos ===== *@
-@if (gallery.Count > 0)
+@* ===== Photo slider: all photos, main photo first =====
+   Works without JavaScript (swipe / scroll, snaps to each photo);
+   slider.js adds the arrows, thumbnails and keyboard support. *@
+@if (Model.Photos.Count > 1)
 {
-    <section class="section section--sand">
+    var total = Model.Photos.Count;
+    <section class="section section--sand" id="photos">
         <div class="container">
             <h2>Photos</h2>
-            <div class="place-gallery">
-                @foreach (var ph in gallery)
-                {
-                    <a href="/photos/@ph.Id/1400" target="_blank" rel="noopener">
-                        <img src="/photos/@ph.Id/700" width="1584" height="990"
-                             loading="lazy" decoding="async" alt="@(ph.Alt ?? p.Name)" />
-                    </a>
-                }
+            <div class="slider" data-slider>
+                <div class="slider__stage">
+                <div class="slider__track" tabindex="0" role="region" aria-label="Photos of @p.Name">
+                    @for (var i = 0; i < total; i++)
+                    {
+                        var ph = Model.Photos[i];
+                        <figure class="slider__slide" aria-label="Photo @(i + 1) of @total">
+                            <img src="/photos/@ph.Id/1400"
+                                 srcset="/photos/@ph.Id/700 700w, /photos/@ph.Id/1400 1400w"
+                                 sizes="(min-width: 1140px) 1100px, 100vw"
+                                 width="1584" height="990" loading="lazy" decoding="async"
+                                 alt="@(ph.Alt ?? p.Name)" />
+                        </figure>
+                    }
+                </div>
+                <button type="button" class="slider__btn slider__btn--prev" aria-label="Previous photo" hidden>&#8249;</button>
+                <button type="button" class="slider__btn slider__btn--next" aria-label="Next photo" hidden>&#8250;</button>
+                </div>
+                <p class="slider__count" aria-live="polite"><span data-slider-current>1</span> / @total</p>
+                <div class="slider__thumbs" hidden>
+                    @for (var i = 0; i < total; i++)
+                    {
+                        var ph = Model.Photos[i];
+                        <button type="button" class="slider__thumb" data-slide="@i" aria-label="Show photo @(i + 1)">
+                            <img src="/photos/@ph.Id/700" alt="" loading="lazy" decoding="async" />
+                        </button>
+                    }
+                </div>
             </div>
         </div>
     </section>
@@ -234,4 +256,8 @@
             </p>
         </div>
     </section>
+}
+
+@section Scripts {
+    <script src="~/js/slider.js" asp-append-version="true" defer></script>
 }

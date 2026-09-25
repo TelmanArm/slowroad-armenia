@@ -800,21 +800,81 @@ section[id] { scroll-margin-top: var(--nav-height); }
 .place-facts__btn { display: block; text-align: center; }
 .place-facts__btn + .place-facts__btn { margin-top: 0.6rem; }
 
-/* Extra photos */
-.place-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-}
-.place-gallery img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+/* Photo slider (scroll-snap; slider.js adds arrows + thumbnails) */
+.slider__stage { position: relative; }
+.slider__track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease;
+  background: var(--charcoal);
+  scrollbar-width: none;
 }
-.place-gallery a:hover img { transform: scale(1.02); }
+.slider__track::-webkit-scrollbar { display: none; }
+.slider__track:focus-visible { outline: 3px solid var(--apricot); outline-offset: 3px; }
+.slider__slide {
+  flex: 0 0 100%;
+  margin: 0;
+  scroll-snap-align: start;
+}
+.slider__slide img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.slider__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--blue);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease;
+}
+.slider__btn:hover,
+.slider__btn:focus-visible { background: var(--apricot); }
+.slider__btn--prev { left: 0.75rem; }
+.slider__btn--next { right: 0.75rem; }
+.slider__btn[hidden],
+.slider__thumbs[hidden] { display: none; }
+.slider__count {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.slider__thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.slider__thumb {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  background: none;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.slider__thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.slider__thumb:hover,
+.slider__thumb.is-active { opacity: 1; }
+.slider__thumb.is-active { border-color: var(--apricot); }
 
 /* Map */
 .place-map {
@@ -937,6 +997,70 @@ section[id] { scroll-margin-top: var(--nav-height); }
   border-top: 1px solid var(--line);
   font-size: 1.1rem;
 }
+
+/* Photo manager on the Edit place page */
+.admin-hint { font-size: 0.92rem; color: var(--muted); }
+.admin-flash {
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  background: #E8F3E8;
+  color: #235C23;
+  font-size: 0.92rem;
+}
+.admin-flash--error { background: #F7E4E4; color: var(--red); }
+
+.admin-photos {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1rem;
+}
+.admin-photo {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--sand-light);
+}
+.admin-photo--main { border: 3px solid var(--apricot); }
+.admin-photo img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.admin-photo__badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--apricot);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.admin-photo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.55rem;
+}
+.admin-photo__actions form { margin: 0; }
+.admin-photo__actions button {
+  padding: 0.3rem 0.6rem;
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  cursor: pointer;
+}
+.admin-photo__actions button:hover { border-color: var(--apricot); }
+.admin-photo__actions .admin-photo__delete { color: var(--red); }
+
+.admin-upload { margin-top: 0.5rem; }
+.admin-upload input[type="file"] { margin-bottom: 0.75rem; }
 
 /* Textarea matches the input styling from the login card above */
 .admin-card textarea {
