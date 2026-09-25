@@ -89,7 +89,19 @@ public class PlacesController : Controller
 
         place.Name = input.Name;
         place.Region = input.Region;
+        place.ShortDescription = input.ShortDescription;
         place.Description = input.Description;
+
+        // Detail page fields
+        place.Body = input.Body;
+        place.Highlights = input.Highlights;
+        place.GettingThere = input.GettingThere;
+        place.Tips = input.Tips;
+        place.DistanceFromYerevan = input.DistanceFromYerevan;
+        place.TimeNeeded = input.TimeNeeded;
+        place.BestTime = input.BestTime;
+        place.Latitude = input.Latitude;
+        place.Longitude = input.Longitude;
 
         // Optional new image: replace this place's photo bytes for both widths.
         if (photo is { Length: > 0 })

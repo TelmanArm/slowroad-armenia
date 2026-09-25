@@ -12,15 +12,7 @@
             @foreach (var si in Model.Items)
             {
                 var item = si.Item;
-                var photo = item.Photos.FirstOrDefault();
-                var card = new PlaceCardViewModel
-                {
-                    PhotoId = photo?.Id ?? 0,
-                    Alt = photo?.Alt,
-                    Region = item.Region,
-                    Name = item.Name,
-                    Body = item.Description,
-                };
+                var card = PlaceCardViewModel.From(item, item.Description);
                 <partial name="_PlaceCard" model="card" />
             }
         </div>

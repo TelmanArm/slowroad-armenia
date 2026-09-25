@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <!-- One shared stylesheet for the whole site -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Optional per-page extras (canonical URL, Open Graph, structured data) -->
+    @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
 <div class="page">

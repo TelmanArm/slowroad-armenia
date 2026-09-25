@@ -422,6 +422,21 @@ section[id] { scroll-margin-top: var(--nav-height); }
   color: var(--red);
 }
 .card h3 { margin-bottom: 0.4rem; }
+
+/* Clickable card: the title link's ::after covers the whole card, so a click
+   anywhere opens the detail page while screen readers hear one clean link. */
+.card { position: relative; }
+.card__link { color: inherit; }
+.card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+.card__link:hover,
+.card__link:focus-visible { color: var(--red); text-decoration: none; }
+.card:focus-within { box-shadow: 0 0 0 3px var(--apricot), var(--shadow-hover); }
+.card__link:focus-visible { outline: none; }
 .card p { margin: 0; color: var(--muted); font-size: 0.97rem; }
 
 /* Small info cards (Plan Your Trip) */
@@ -703,6 +718,119 @@ section[id] { scroll-margin-top: var(--nav-height); }
   font-size: 0.9rem;
 }
 
+/* ---------- Destination detail page (/destinations/{slug}) --------- */
+
+/* Shorter, left-aligned hero with the title at the bottom of the photo. */
+.hero--place {
+  min-height: clamp(24rem, 62vh, 36rem);
+  align-items: flex-end;
+  text-align: left;
+}
+.hero--place::before {
+  background: linear-gradient(180deg, rgba(20, 35, 58, 0.25) 0%, rgba(20, 35, 58, 0.15) 40%, rgba(14, 26, 45, 0.88) 100%);
+}
+.hero--place .hero__content {
+  width: 100%;
+  max-width: var(--container);
+  padding: 6rem 1.25rem 2.75rem;
+}
+.hero--place h1 { margin-bottom: 0.5rem; }
+.hero--place p { margin: 0; max-width: 60ch; }
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+.breadcrumb a { color: var(--white); }
+.breadcrumb a:hover,
+.breadcrumb a:focus-visible { color: #FFE3C4; }
+
+/* Article + sidebar */
+.place-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+.place-article { max-width: 70ch; font-size: 1.05rem; }
+.place-article h2 { font-size: clamp(1.4rem, 2.6vw, 1.8rem); margin-top: 2.5rem; }
+.place-article h2:first-child { margin-top: 0; }
+.place-article .info-card { font-size: 1rem; }
+
+.place-highlights { list-style: none; padding: 0; margin: 0 0 1rem; }
+.place-highlights li {
+  position: relative;
+  padding: 0.6rem 0 0.6rem 1.9rem;
+  border-bottom: 1px solid var(--line);
+}
+.place-highlights li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 1.05rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--apricot);
+}
+
+/* "At a glance" card */
+.place-facts {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 5px solid var(--apricot);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.6rem;
+  box-shadow: var(--shadow);
+}
+.place-facts h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+.place-facts dl { margin: 0 0 1.25rem; }
+.place-facts dt {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.place-facts dd { margin: 0.15rem 0 0.9rem; }
+.place-facts__btn { display: block; text-align: center; }
+.place-facts__btn + .place-facts__btn { margin-top: 0.6rem; }
+
+/* Extra photos */
+.place-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.place-gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+}
+.place-gallery a:hover img { transform: scale(1.02); }
+
+/* Map */
+.place-map {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.place-map iframe {
+  display: block;
+  width: 100%;
+  height: clamp(18rem, 45vh, 26rem);
+  border: 0;
+}
+.place-map__link { margin-top: 0.75rem; font-size: 0.92rem; }
+
 /* =====================================================================
    Responsive — mobile-first breakpoints
    ===================================================================== */
@@ -741,6 +869,10 @@ section[id] { scroll-margin-top: var(--nav-height); }
   .info-grid { grid-template-columns: repeat(3, 1fr); }
   .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
   .hero { min-height: clamp(34rem, 80vh, 48rem); }
+  .hero--place { min-height: clamp(26rem, 64vh, 38rem); }
+
+  .place-layout { grid-template-columns: minmax(0, 1fr) 320px; gap: 3.5rem; }
+  .place-facts { position: sticky; top: calc(var(--nav-height) + 1.5rem); }
 }
 
 /* =====================================================================
@@ -797,6 +929,14 @@ section[id] { scroll-margin-top: var(--nav-height); }
 .admin-table th { font-weight: 600; }
 .admin-table td:last-child { white-space: nowrap; text-align: right; }
 .admin-table td:last-child a { margin-left: 0.75rem; }
+
+/* Sub-heading that splits the place form into groups */
+.admin-card .admin-subhead {
+  margin: 2rem 0 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  font-size: 1.1rem;
+}
 
 /* Textarea matches the input styling from the login card above */
 .admin-card textarea {
