@@ -23,6 +23,15 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(o =>
 builder.Services.ConfigureApplicationCookie(o => { o.LoginPath = "/Admin/Login"; });
 
 var app = builder.Build();
+
+// apply DB migrations on startup (only when RunMigrations=true, e.g. in k8s)
+if (app.Configuration["RunMigrations"] == "true")
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
 await AdminSeeder.SeedAsync(app.Services, app.Configuration);
 
 // Configure the HTTP request pipeline.
