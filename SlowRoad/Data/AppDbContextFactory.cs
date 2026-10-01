@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SlowRoad.Data;
 
@@ -16,8 +18,13 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
                      .GetConnectionString("Default")
                  ?? "Host=x;Database=x;Username=x;Password=x";
 
+        var services = new ServiceCollection();
+        services.Configure<IdentityOptions>(o =>
+            o.Stores.SchemaVersion = IdentitySchemaVersions.Version2);
+
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(cs)
+            .UseApplicationServiceProvider(services.BuildServiceProvider())
             .Options;
 
         return new AppDbContext(options);
