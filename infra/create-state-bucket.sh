@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUCKET="slowroad-tfstate-<gt-slowroad>"
+BUCKET="slowroad-tfstate-gtslowroad"
 REGION="eu-north-1"
 
 # Skip if bucket already exists
