@@ -7,10 +7,12 @@ module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "6.4.1"
 
-  name          = var.instance_name
-  instance_type = var.instance_type
-  key_name      = var.key_name
-  subnet_id     = data.aws_subnet.default.id
+  name               = var.instance_name
+  instance_type      = var.instance_type
+  key_name           = var.key_name
+  subnet_id          = data.aws_subnet.default.id
+  ignore_ami_changes = true
+  create_eip         = true
 
   security_group_ingress_rules = {
     ssh   = { from_port = 22, to_port = 22, cidr_ipv4 = var.ssh_allowed_cidr }
