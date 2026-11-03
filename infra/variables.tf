@@ -25,7 +25,7 @@ variable "instance_name" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.small"
+  default = "t3.micro"
 }
 
 variable "key_name" {
