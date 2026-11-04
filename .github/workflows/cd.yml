@@ -67,10 +67,26 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+      
     steps:
       # Check out the repo so deploy/deploy.sh exists on the runner.
       - uses: actions/checkout@v4
-        
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Read EC2 host from SSM
+        id: ssm
+        run: |
+          HOST=$(aws ssm get-parameter --name /slowroad/dev/ec2_host \
+                 --query Parameter.Value --output text)
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+          
        # the runner needs the SDK to generate the script
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -87,7 +103,7 @@ jobs:
       - name: Copy compose file to EC2
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ steps.ssm.outputs.host }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "deploy/docker-compose.prod.yml,deploy/migrate.sql,deploy/backup.sh"
@@ -101,7 +117,7 @@ jobs:
           IMAGE: ${{ env.IMAGE }}
           SHA: ${{ github.sha }}
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ steps.ssm.outputs.host }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: IMAGE,SHA
