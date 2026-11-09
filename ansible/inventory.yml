@@ -1,0 +1,6 @@
+all:
+  hosts:
+    slowroad:
+      ansible_host: "{{ lookup('env', 'EC2_HOST') }}"
+      ansible_user: "{{ lookup('env', 'EC2_USER') }}"
+      ansible_ssh_private_key_file: key.pem

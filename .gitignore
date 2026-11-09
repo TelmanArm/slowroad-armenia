@@ -70,3 +70,5 @@ SlowRoad/.claude/
 *.tfstate
 *.tfstate.*
 *.tfvars
+
+*.pem
