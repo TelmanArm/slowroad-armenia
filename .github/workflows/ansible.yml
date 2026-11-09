@@ -1,3 +1,44 @@
+name: Ansible
+
 on:
   workflow_call:
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Read EC2 host from SSM
+        id: ssm
+        run: |
+          HOST=$(aws ssm get-parameter --name /slowroad/dev/ec2_host \
+                 --query Parameter.Value --output text)
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+
+      - name: Save SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - run: pipx install ansible-core
+
+      - name: Run playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook ansible/playbook.yml \
+            -i "${{ steps.ssm.outputs.host }}," \
+            -u "${{ secrets.EC2_USER }}" \
+            --private-key key.pem
