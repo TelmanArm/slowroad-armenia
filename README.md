@@ -75,9 +75,11 @@ in production. The app needs Postgres to run.
 Secrets are never committed.
 
 **GitHub repo secrets**
-`EC2_HOST` · `EC2_USER` · `EC2_SSH_KEY`
+`EC2_HOST` · `EC2_USER` · `EC2_SSH_KEY` ·
+`POSTGRES_USER` · `POSTGRES_PASSWORD` · `POSTGRES_DB` ·
+`ADMIN_EMAIL` · `ADMIN_PASSWORD` · `BACKUP_BUCKET`
 
-**Server `/opt/slowroad/.env`**
+**Server `/opt/slowroad/.env`** (written by Ansible from the secrets above)
 `POSTGRES_USER` · `POSTGRES_PASSWORD` · `POSTGRES_DB` ·
 `ConnectionStrings__Default` · `Admin__Email` · `Admin__Password` · `BACKUP_BUCKET`
 
