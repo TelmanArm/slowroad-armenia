@@ -29,16 +29,14 @@ jobs:
 
       - name: Save SSH key
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
+          echo "${{ secrets.EC2_SSH_KEY }}" > ansible/key.pem
+          chmod 600 ansible/key.pem
 
       - run: pipx install ansible-core
 
       - name: Run playbook
+        working-directory: ansible
         env:
-          ANSIBLE_HOST_KEY_CHECKING: "False"
-        run: |
-          ansible-playbook ansible/playbook.yml \
-            -i "${{ steps.ssm.outputs.host }}," \
-            -u "${{ secrets.EC2_USER }}" \
-            --private-key key.pem
+          EC2_HOST: ${{ steps.ssm.outputs.host }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: ansible-playbook playbook.yml
