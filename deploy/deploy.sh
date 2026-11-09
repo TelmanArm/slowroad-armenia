@@ -20,8 +20,12 @@ migrate_db() {
 bash ./backup.sh deploy
 migrate_db
 
+echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
 # Download the new app image built by CI.
 docker compose -f docker-compose.prod.yml pull app
+
+docker logout ghcr.io
 
 # Start or update the containers.
 # Only changed services are recreated, so the database keeps running.
