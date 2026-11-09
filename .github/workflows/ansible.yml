@@ -39,4 +39,10 @@ jobs:
         env:
           EC2_HOST: ${{ steps.ssm.outputs.host }}
           EC2_USER: ${{ secrets.EC2_USER }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          BACKUP_BUCKET: ${{ secrets.BACKUP_BUCKET }}
         run: ansible-playbook playbook.yml

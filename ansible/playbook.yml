@@ -38,3 +38,18 @@
         state: directory
         owner: "{{ ansible_user }}"
         mode: "0755"
+
+    - name: Write .env for docker compose
+      ansible.builtin.copy:
+        dest: /opt/slowroad/.env
+        owner: "{{ ansible_user }}"
+        mode: "0600"
+        content: |
+          POSTGRES_USER={{ lookup('env', 'POSTGRES_USER') }}
+          POSTGRES_PASSWORD={{ lookup('env', 'POSTGRES_PASSWORD') }}
+          POSTGRES_DB={{ lookup('env', 'POSTGRES_DB') }}
+          ConnectionStrings__Default=Host=db;Database={{ lookup('env', 'POSTGRES_DB') }};Username={{ lookup('env', 'POSTGRES_USER') }};Password={{ lookup('env', 'POSTGRES_PASSWORD') }}
+          Admin__Email={{ lookup('env', 'ADMIN_EMAIL') }}
+          Admin__Password={{ lookup('env', 'ADMIN_PASSWORD') }}
+          BACKUP_BUCKET={{ lookup('env', 'BACKUP_BUCKET') }}
+      no_log: true
