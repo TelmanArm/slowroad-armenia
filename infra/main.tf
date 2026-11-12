@@ -43,6 +43,22 @@ resource "aws_ssm_parameter" "ec2_host" {
   value = module.ec2_instance.public_ip
 }
 
+# Postgres only reads the password on first init, so it must never change.
+resource "random_password" "db" {
+  length  = 32
+  special = false
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "aws_ssm_parameter" "db_password" {
+  name  = "/slowroad/dev/postgres_password"
+  type  = "SecureString"
+  value = random_password.db.result
+}
+
 output "public_ip" {
   value = module.ec2_instance.public_ip
 }

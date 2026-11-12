@@ -27,6 +27,14 @@ jobs:
                  --query Parameter.Value --output text)
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
 
+      - name: Read DB password from SSM
+        id: dbpass
+        run: |
+          PASS=$(aws ssm get-parameter --name /slowroad/dev/postgres_password \
+                 --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$PASS"
+          echo "value=$PASS" >> "$GITHUB_OUTPUT"
+
       - name: Save SSH key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > ansible/key.pem
@@ -40,7 +48,7 @@ jobs:
           EC2_HOST: ${{ steps.ssm.outputs.host }}
           EC2_USER: ${{ secrets.EC2_USER }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ steps.dbpass.outputs.value }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
