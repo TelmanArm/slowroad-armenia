@@ -1,0 +1,37 @@
+name: Packer
+
+on:
+  push:
+    branches: [main]
+    paths: ["packer/**"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: packer
+  cancel-in-progress: false
+
+jobs:
+  packer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packer
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-packer@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - run: packer init .
+      - run: packer fmt -check .
+      - run: packer validate .
+      - run: packer build -color=false .
