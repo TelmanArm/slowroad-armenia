@@ -1,9 +1,7 @@
 name: Terraform
 
 on:
-  push:
-    branches: [main]
-    paths: ["infra/**"]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -38,9 +36,3 @@ jobs:
 
       - if: github.ref == 'refs/heads/main'
         run: terraform apply -input=false tfplan
-  
-  ansible:
-    needs: terraform
-    if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/ansible.yml
-    secrets: inherit  

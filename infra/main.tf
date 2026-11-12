@@ -3,6 +3,16 @@ data "aws_subnet" "default" {
   default_for_az    = true
 }
 
+data "aws_ami" "slowroad" {
+  most_recent = true
+  owners      = ["self"]
+
+  filter {
+    name   = "name"
+    values = ["slowroad-base-*"]
+  }
+}
+
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "6.4.1"
@@ -11,7 +21,8 @@ module "ec2_instance" {
   instance_type      = var.instance_type
   key_name           = var.key_name
   subnet_id          = data.aws_subnet.default.id
-  ignore_ami_changes = true
+  ami                = data.aws_ami.slowroad.id
+  ignore_ami_changes = false
   create_eip         = true
 
   security_group_ingress_rules = {
