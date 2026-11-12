@@ -1,8 +1,7 @@
 name: CD
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 # Only one CD run per branch at a time so deploys can't land out of order.

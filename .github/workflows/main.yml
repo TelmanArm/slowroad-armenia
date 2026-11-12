@@ -1,0 +1,56 @@
+name: Main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: main
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packer: ${{ steps.filter.outputs.packer }}
+      infra: ${{ steps.filter.outputs.infra }}
+      ansible: ${{ steps.filter.outputs.ansible }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            packer: ['packer/**']
+            infra:  ['infra/**']
+            ansible: ['ansible/**']
+
+  packer:
+    needs: changes
+    if: needs.changes.outputs.packer == 'true'
+    uses: ./.github/workflows/packer.yml
+    secrets: inherit
+
+  terraform:
+    needs: [changes, packer]
+    if: ${{ !failure() && !cancelled() && (needs.changes.outputs.packer == 'true' || needs.changes.outputs.infra == 'true') }}
+    uses: ./.github/workflows/terraform.yml
+    secrets: inherit
+
+  ansible:
+    needs: [changes, terraform]
+    if: ${{ !failure() && !cancelled() && (needs.changes.outputs.packer == 'true' || needs.changes.outputs.infra == 'true' || needs.changes.outputs.ansible == 'true') }}
+    uses: ./.github/workflows/ansible.yml
+    secrets: inherit
+
+  cd:
+    needs: ansible
+    if: ${{ !failure() && !cancelled() }}
+    uses: ./.github/workflows/cd.yml
+    secrets: inherit
