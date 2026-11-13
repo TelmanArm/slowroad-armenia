@@ -13,6 +13,13 @@
         name: nginx
         state: present
 
+    - name: Install certbot
+      ansible.builtin.dnf:
+        name: 
+          - certbot
+          - python3-certbot-nginx
+        state: present
+    
     - name: Start and enable nginx
       ansible.builtin.service:
         name: nginx
@@ -26,7 +33,37 @@
         content: |
           server {
               listen 80 default_server;
-              server_name _;
+              server_name slowroadarmenia.com www.slowroadarmenia.com;
+
+              location / {
+                  return 301 https://$host$request_uri;
+              }
+          }
+      notify: Reload nginx
+      
+    - name: Apply nginx changes now
+      ansible.builtin.meta: flush_handlers
+      
+    - name: Get Let's Encrypt certificate
+      ansible.builtin.command: >
+        certbot certonly --nginx
+        -d slowroadarmenia.com -d www.slowroadarmenia.com
+        --non-interactive --agree-tos
+        -m tgurgenyan@gmail.com
+      args:
+        creates: /etc/letsencrypt/live/slowroadarmenia.com/fullchain.pem 
+
+    - name: Configure nginx HTTPS
+      ansible.builtin.copy:
+        dest: /etc/nginx/conf.d/slowroad-ssl.conf
+        mode: "0644"
+        content: |
+          server {
+              listen 443 ssl;
+              server_name slowroadarmenia.com www.slowroadarmenia.com;
+
+              ssl_certificate     /etc/letsencrypt/live/slowroadarmenia.com/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/slowroadarmenia.com/privkey.pem;
 
               location / {
                   proxy_pass http://127.0.0.1:8080;
@@ -37,7 +74,13 @@
               }
           }
       notify: Reload nginx
-
+      
+    - name: Enable certbot auto-renewal
+        ansible.builtin.service:
+          name: certbot-renew.timer
+          state: started
+          enabled: true  
+    
     - name: Create app folder
       ansible.builtin.file:
         path: /opt/slowroad
