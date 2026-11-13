@@ -76,10 +76,10 @@
       notify: Reload nginx
       
     - name: Enable certbot auto-renewal
-        ansible.builtin.service:
-          name: certbot-renew.timer
-          state: started
-          enabled: true  
+      ansible.builtin.service:
+        name: certbot-renew.timer
+        state: started
+        enabled: true  
     
     - name: Create app folder
       ansible.builtin.file:
