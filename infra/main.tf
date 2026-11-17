@@ -22,7 +22,7 @@ module "ec2_instance" {
   key_name           = var.key_name
   subnet_id          = data.aws_subnet.default.id
   ami                = data.aws_ami.slowroad.id
-  ignore_ami_changes = false
+  ignore_ami_changes = true
   create_eip         = true
 
   security_group_ingress_rules = {
@@ -37,6 +37,30 @@ module "ec2_instance" {
   }
 }
 
+resource "aws_ebs_volume" "pgdata" {
+  availability_zone = var.availability_zone
+  size              = 5
+  type              = "gp3"
+  encrypted         = true
+  final_snapshot    = true
+
+  tags = {
+    Name    = "slowroad-pgdata"
+    Project = var.project
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+  
+}
+
+resource "aws_volume_attachment" "pgdata" {
+  device_name = "/dev/sdf"
+  instance_id = module.ec2_instance.id
+  volume_id   = aws_ebs_volume.pgdata.id
+}
+
 resource "aws_ssm_parameter" "ec2_host" {
   name  = "/slowroad/dev/ec2_host"
   type  = "String"
@@ -49,7 +73,7 @@ resource "random_password" "db" {
   special = false
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 
