@@ -49,7 +49,7 @@ resource "random_password" "db" {
   special = false
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
