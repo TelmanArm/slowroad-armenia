@@ -3,12 +3,6 @@
   become: true     
 
   tasks:
-    # Make sure Docker is running for the app containers
-    - name: Start Docker
-      ansible.builtin.service:
-        name: docker
-        state: started
-    
     # Reverse proxy in front of the app
     - name: Install nginx
       ansible.builtin.dnf:
@@ -101,7 +95,8 @@
       community.general.filesystem:
         fstype: xfs
         dev: /dev/nvme1n1
-        
+        force: false
+
     # Read the filesystem UUID so the mount never depends on device order
     - name: Read the data volume UUID
       ansible.builtin.command: blkid -s UUID -o value /dev/nvme1n1
@@ -123,7 +118,35 @@
         path: /mnt/pgdata/postgres
         state: directory
         mode: "0700"
-        
+
+    # Systemd drop-ins for docker.service live here
+    - name: Create docker systemd drop-in directory
+      ansible.builtin.file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+        mode: "0755"
+
+    # Docker (and so Postgres) won't start unless the volume is mounted
+    - name: Make Docker wait for the pgdata mount
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/docker.service.d/pgdata.conf
+        mode: "0644"
+        content: |
+          [Unit]
+          RequiresMountsFor=/mnt/pgdata
+      notify: Reload systemd
+
+    # Reload systemd before Docker starts, so the drop-in applies
+    - name: Apply systemd changes now
+      ansible.builtin.meta: flush_handlers
+
+    # Make sure Docker is running for the app containers
+    - name: Start Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
     # Directory for docker compose files
     - name: Create app folder
       ansible.builtin.file:
@@ -154,3 +177,8 @@
       ansible.builtin.service:
         name: nginx
         state: reloaded
+
+    # Triggered when a systemd unit or drop-in changes
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true

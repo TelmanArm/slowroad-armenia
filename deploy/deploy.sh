@@ -1,35 +1,27 @@
 #!/usr/bin/env bash
-# Runs on EC2 over SSH. GitHub Actions passes IMAGE and SHA.
-# Stop on any error, and on unset variables.
+# Runs on EC2 over SSH. CI passes IMAGE and SHA.
 set -euo pipefail
 
-# The compose file and the .env file live here.
 cd /opt/slowroad
+source ./preflight.sh
+require_pgdata
 
-# Make IMAGE and SHA visible to compose, so it can fill ${IMAGE}:${SHA}.
+# Compose fills ${IMAGE}:${SHA} from these.
 export IMAGE SHA
 
-migrate_db() {
-  echo "applying migrations..."
-  docker compose -f docker-compose.prod.yml exec -T db \
-    sh -c 'psql -v ON_ERROR_STOP=1 \
-             -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < migrate.sql
-  echo "migrations applied"
-}
-
 bash ./backup.sh deploy
-migrate_db
 
+# Apply migrations.
+docker compose -f docker-compose.prod.yml exec -T db \
+  sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < migrate.sql
+
+# Pull the new app image.
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-
-# Download the new app image built by CI.
 docker compose -f docker-compose.prod.yml pull app
-
 docker logout ghcr.io
 
-# Start or update the containers.
-# Only changed services are recreated, so the database keeps running.
+# Recreate changed containers only; the db keeps running.
 docker compose -f docker-compose.prod.yml up -d
 
-# Delete old unused images, so the disk doesn't fill up.
+# Free disk space.
 docker image prune -f
