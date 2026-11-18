@@ -41,6 +41,8 @@ jobs:
           chmod 600 ansible/key.pem
 
       - run: pipx install ansible-core
+        
+      - run: ansible-galaxy collection install ansible.posix community.general
 
       - name: Run playbook
         working-directory: ansible
