@@ -38,3 +38,8 @@ variable "ssh_allowed_cidr" {
   description = "Your IP for SSH, e.g. 1.2.3.4/32"
   default     = "0.0.0.0/0"
 }
+variable "backup_bucket" {
+  type        = string
+  description = "Existing S3 bucket holding Postgres dumps"
+  default     = "slowroad-backups-449916777624-eu-north-1-an"
+}

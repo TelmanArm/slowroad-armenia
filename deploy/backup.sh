@@ -18,17 +18,15 @@ docker compose -f docker-compose.prod.yml exec -T db \
 mv "$FILE.tmp" "$FILE"
 echo "backup: $FILE ($(du -h "$FILE" | cut -f1))"
 
-# Keep the 2 newest.
-ls -t backups/*.sql | tail -n +3 | xargs -r rm --
-
-# Upload to S3, if a bucket is set.
 bucket="$(grep -m1 '^BACKUP_BUCKET=' .env | cut -d= -f2- || true)"
-key="postgres/$(basename "$FILE").gz"
-
 if [ -z "$bucket" ]; then
-  echo "WARNING: BACKUP_BUCKET not set — skipping S3 upload" >&2
-elif gzip -c "$FILE" | aws s3 cp - "s3://$bucket/$key"; then
-  echo "uploaded: s3://$bucket/$key"
-else
-  echo "WARNING: S3 upload failed — local backup still at $FILE" >&2
+  echo "FATAL: BACKUP_BUCKET not set in .env" >&2
+  exit 1
 fi
+
+key="postgres/$(basename "$FILE").gz"
+gzip -c "$FILE" | aws s3 cp - "s3://$bucket/$key"
+echo "uploaded: s3://$bucket/$key"
+
+# Only now is it safe to drop older local dumps.
+ls -t backups/*.sql | tail -n +3 | xargs -r rm --
