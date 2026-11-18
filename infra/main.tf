@@ -52,7 +52,6 @@ resource "aws_ebs_volume" "pgdata" {
   lifecycle {
     prevent_destroy = true
   }
-  
 }
 
 resource "aws_volume_attachment" "pgdata" {
