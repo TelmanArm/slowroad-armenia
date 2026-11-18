@@ -1,0 +1,55 @@
+name: Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * 0"   # Sundays 02:00 UTC = 06:00 Armenia
+  workflow_dispatch:      
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Read EC2 host from SSM
+        id: ssm
+        run: |
+          HOST=$(aws ssm get-parameter --name /slowroad/dev/ec2_host \
+                 --query Parameter.Value --output text)
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+
+      - name: Run the backup on the server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ steps.ssm.outputs.host }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: cd /opt/slowroad && bash ./backup.sh weekly
+
+      - name: Fail if the newest backup in S3 is stale
+        env:
+          BUCKET: ${{ secrets.BACKUP_BUCKET }}
+        run: |
+          NEWEST=$(aws s3api list-objects-v2 --bucket "$BUCKET" \
+                   --prefix postgres/ \
+                   --query 'sort_by(Contents,&LastModified)[-1].LastModified' \
+                   --output text)
+          echo "newest object: $NEWEST"
+          AGE_H=$(( ( $(date -u +%s) - $(date -u -d "$NEWEST" +%s) ) / 3600 ))
+          echo "age: ${AGE_H}h"
+          if [ "$AGE_H" -gt 192 ]; then   # 8 days: one weekly run plus a day of slack
+            echo "::error::Newest backup is ${AGE_H}h old"
+            exit 1
+          fi
