@@ -13,6 +13,18 @@ data "aws_ami" "slowroad" {
   }
 }
 
+data "aws_iam_policy_document" "backup_writer" {
+  statement {
+    actions   = ["s3:PutObject", "s3:GetObject"]
+    resources = ["arn:aws:s3:::${var.backup_bucket}/postgres/*"]
+  }
+}
+
+resource "aws_iam_policy" "backup_writer" {
+  name   = "slowroad-backup-writer"
+  policy = data.aws_iam_policy_document.backup_writer.json
+}
+
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "6.4.1"
@@ -24,6 +36,14 @@ module "ec2_instance" {
   ami                = data.aws_ami.slowroad.id
   ignore_ami_changes = true
   create_eip         = true
+
+  create_iam_instance_profile = true
+  iam_role_name               = "slowroad-ec2"
+  iam_role_use_name_prefix    = false
+
+  iam_role_policies = {
+    backups = aws_iam_policy.backup_writer.arn
+  }
 
   security_group_ingress_rules = {
     ssh   = { from_port = 22, to_port = 22, cidr_ipv4 = var.ssh_allowed_cidr }
