@@ -3,16 +3,19 @@
   become: true     
 
   tasks:
+    # Make sure Docker is running for the app containers
     - name: Start Docker
       ansible.builtin.service:
         name: docker
         state: started
     
+    # Reverse proxy in front of the app
     - name: Install nginx
       ansible.builtin.dnf:
         name: nginx
         state: present
 
+    # Tools to obtain Let's Encrypt certificates
     - name: Install certbot
       ansible.builtin.dnf:
         name: 
@@ -20,12 +23,14 @@
           - python3-certbot-nginx
         state: present
     
+    # Run nginx now and on boot
     - name: Start and enable nginx
       ansible.builtin.service:
         name: nginx
         state: started
         enabled: true
 
+    # HTTP server: redirect everything to HTTPS
     - name: Configure nginx proxy for app
       ansible.builtin.copy:
         dest: /etc/nginx/conf.d/slowroad.conf
@@ -41,9 +46,11 @@
           }
       notify: Reload nginx
       
+    # Reload nginx before certbot needs it
     - name: Apply nginx changes now
       ansible.builtin.meta: flush_handlers
       
+    # Issue cert once (skipped if it already exists)
     - name: Get Let's Encrypt certificate
       ansible.builtin.command: >
         certbot certonly --nginx
@@ -53,6 +60,7 @@
       args:
         creates: /etc/letsencrypt/live/slowroadarmenia.com/fullchain.pem 
 
+    # HTTPS server: proxy to the app on port 8080
     - name: Configure nginx HTTPS
       ansible.builtin.copy:
         dest: /etc/nginx/conf.d/slowroad-ssl.conf
@@ -75,12 +83,48 @@
           }
       notify: Reload nginx
       
+    # Renew certificates automatically
     - name: Enable certbot auto-renewal
       ansible.builtin.service:
         name: certbot-renew.timer
         state: started
         enabled: true  
+
+    # Wait for the EBS data volume to be attached
+    - name: Wait for the data volume to appear
+      ansible.builtin.wait_for:
+        path: /dev/nvme1n1
+        timeout: 60
+
+    # Format the data volume (no-op if already formatted)
+    - name: Create XFS filesystem on the data volume
+      community.general.filesystem:
+        fstype: xfs
+        dev: /dev/nvme1n1
+        
+    # Read the filesystem UUID so the mount never depends on device order
+    - name: Read the data volume UUID
+      ansible.builtin.command: blkid -s UUID -o value /dev/nvme1n1
+      register: pgdata_uuid
+      changed_when: false
     
+    # Mount by UUID and keep it in /etc/fstab so it survives reboots
+    - name: Mount the data volume
+      ansible.posix.mount:
+        path: /mnt/pgdata
+        src: "UUID={{ pgdata_uuid.stdout }}"
+        fstype: xfs
+        opts: defaults,nofail
+        state: mounted
+    
+    # Postgres writes here. A subfolder, not the mount root — see below
+    - name: Create the Postgres data directory
+      ansible.builtin.file:
+        path: /mnt/pgdata/postgres
+        state: directory
+        mode: "0700"
+        
+    # Directory for docker compose files
     - name: Create app folder
       ansible.builtin.file:
         path: /opt/slowroad
@@ -88,6 +132,7 @@
         owner: "{{ ansible_user }}"
         mode: "0755"
 
+    # Secrets from CI env vars for the containers
     - name: Write .env for docker compose
       ansible.builtin.copy:
         dest: /opt/slowroad/.env
@@ -104,6 +149,7 @@
       no_log: true
 
   handlers:
+    # Triggered when nginx config changes
     - name: Reload nginx
       ansible.builtin.service:
         name: nginx
