@@ -237,11 +237,13 @@ section[id] { scroll-margin-top: var(--nav-height); }
 }
 .brand:hover { text-decoration: none; color: var(--red); }
 
+/* The snail mark from the Slow Road Armenia logo. The image already has a
+   transparent background, so it sits on the white header and the blue footer
+   alike; the text beside it supplies the accessible name. */
 .brand__mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(160deg, var(--red) 0 33%, var(--blue) 33% 66%, var(--apricot) 66%);
+  width: 46px;
+  height: auto;
+  aspect-ratio: 200 / 140;
   flex: 0 0 auto;
 }
 
@@ -593,6 +595,15 @@ section[id] { scroll-margin-top: var(--nav-height); }
 }
 .footer-grid li { margin-bottom: 0.4rem; }
 .footer-grid .brand { color: var(--white); margin-bottom: 0.75rem; }
+/* On the deep-blue footer the dark-green snail all but disappears, so the mark
+   sits on a small cream chip — the same cream field it has in the full logo. */
+.footer-grid .brand__mark {
+  width: 32px;
+  padding: 2px 4px;
+  background: var(--sand-light);
+  border-radius: 7px;
+  box-sizing: content-box;
+}
 .footer-grid p { font-size: 0.95rem; }
 
 .footer-bottom {
