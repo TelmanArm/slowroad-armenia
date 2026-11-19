@@ -14,6 +14,8 @@
 *@
 
 <partial name="_Hero" />
+<partial name="_Facts" model="Model" />
+<partial name="_StartHere" />
 @if (Model.TryGetValue("featured", out var featured))
 {
     <partial name="_Featured" model="featured" />
