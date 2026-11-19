@@ -3,6 +3,7 @@ name: Main
 on:
   push:
     branches: [main]
+    paths-ignore: ['README.md']
   workflow_dispatch:
 
 permissions:
@@ -21,15 +22,21 @@ jobs:
       packer: ${{ steps.filter.outputs.packer }}
       infra: ${{ steps.filter.outputs.infra }}
       ansible: ${{ steps.filter.outputs.ansible }}
+      app: ${{ steps.filter.outputs.app }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # Manual runs have no before-SHA, so pin the base explicitly.
+          base: ${{ github.event_name == 'workflow_dispatch' && 'main' || '' }}
           filters: |
             packer: ['packer/**']
             infra:  ['infra/**']
             ansible: ['ansible/**']
+            app: ['SlowRoad/**', 'SlowRoad.Tests/**', 'SlowRoad.sln', 'Dockerfile', 'deploy/**']
 
   packer:
     needs: changes
@@ -49,8 +56,9 @@ jobs:
     uses: ./.github/workflows/ansible.yml
     secrets: inherit
 
+  # Deploy when app code changed, or when ansible ran (new/rebuilt server needs the app).
   cd:
-    needs: ansible
-    if: ${{ !failure() && !cancelled() }}
+    needs: [changes, ansible]
+    if: ${{ !failure() && !cancelled() && (needs.changes.outputs.app == 'true' || needs.ansible.result == 'success') }}
     uses: ./.github/workflows/cd.yml
     secrets: inherit
