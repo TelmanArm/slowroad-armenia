@@ -1,0 +1,44 @@
+@model Dictionary<string, Section>
+@* ===== Home: the facts band (Sevan turquoise) =====
+   Counted from what is actually published, so the numbers can never drift
+   away from the content. *@
+@{
+    var places = Model.Values
+        .SelectMany(s => s.Items)
+        .Select(i => i.Item)
+        .DistinctBy(i => i.Id)
+        .ToList();
+
+    var regions = places
+        .Select(p => p.Region)
+        .Where(r => !string.IsNullOrWhiteSpace(r))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Count();
+}
+
+@if (places.Count > 0)
+{
+    <section class="facts-band" aria-label="About this guide">
+        <div class="container">
+            <div>
+                <strong>@places.Count destination@(places.Count == 1 ? "" : "s")</strong>
+                <p>written up with photos and practical notes</p>
+            </div>
+            @if (regions > 0)
+            {
+                <div>
+                    <strong>@regions region@(regions == 1 ? "" : "s")</strong>
+                    <p>covered, not only Yerevan</p>
+                </div>
+            }
+            <div>
+                <strong>Free to read</strong>
+                <p>every page, with no sign-up</p>
+            </div>
+            <div>
+                <strong>No ads, no tours</strong>
+                <p>nobody pays to be listed here</p>
+            </div>
+        </div>
+    </section>
+}

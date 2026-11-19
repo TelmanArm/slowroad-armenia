@@ -1,21 +1,35 @@
-@* ===== Home: full-width hero (photo + scrim; styles in site.css → .hero) ===== *@
-<section class="hero" id="home">
-    <img class="hero__bg"
-         src="~/images/hero-1584.webp"
-         srcset="/images/hero-900.webp 900w, /images/hero-1584.webp 1584w"
-         sizes="100vw"
-         width="1584" height="990"
-         fetchpriority="high" decoding="async" alt="" />
-    <div class="hero__content">
-        <span class="eyebrow">A slow travel guide</span>
-        <h1>Discover Armenia</h1>
-        <p>
-            The land of ancient monasteries, mountain roads and apricots — with a
-            6,000-year-old wine tradition. Take it slowly; you will see more.
-        </p>
-        <div class="hero__actions">
-            <a class="btn btn--primary" href="#destinations">Explore destinations</a>
-            <a class="btn btn--ghost" href="#plan">Plan your trip</a>
+@* ===== Home: the intro band =====
+     Promise, proof, and one clear next step, centred so the band reads the
+     same at every width. The four practical answers follow in _StartHere. *@
+<section class="home-hero" id="home">
+    <div class="container">
+        <div class="home-hero__inner">
+            <span class="eyebrow">A slow travel guide</span>
+            <h1>Discover Armenia</h1>
+            <p class="home-hero__lead">
+                The land of ancient monasteries, mountain roads and apricots — with a
+                6,000-year-old wine tradition. Take it slowly; you will see more.
+            </p>
+
+            <div class="home-hero__actions">
+                <a class="btn btn--primary" href="#destinations">Explore destinations</a>
+                <a class="btn btn--outline" href="#plan">Plan your trip</a>
+            </div>
+
+            <ul class="ticks">
+                <li>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>
+                    Free to read, from end to end
+                </li>
+                <li>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>
+                    Written for first-time visitors
+                </li>
+                <li>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>
+                    No ads, no bookings, no tours
+                </li>
+            </ul>
         </div>
     </div>
 </section>

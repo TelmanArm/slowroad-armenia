@@ -1,15 +1,21 @@
 @model PlaceCardViewModel
 @* Shared destination card. Images are served by PhotosController at
    /photos/{photoId}/{width}. The title link is stretched over the whole card
-   (see .card__link in site.css), so clicking anywhere opens the detail page. *@
+   (see .card__link in site.css), so clicking anywhere opens the detail page.
+
+   Badges follow the palette: turquoise = information (how long to give it),
+   sun yellow = season and timing. Each one carries words, never colour alone. *@
 <article class="card">
     <figure><img src="/photos/@Model.PhotoId/700"
              srcset="/photos/@Model.PhotoId/700 700w, /photos/@Model.PhotoId/1400 1400w"
-             sizes="(min-width: 1024px) 351px, (min-width: 768px) 46vw, 92vw"
+             sizes="(min-width: 1024px) 360px, (min-width: 768px) 46vw, 92vw"
              width="1584" height="990" loading="lazy" decoding="async"
              alt="@Model.Alt" /></figure>
     <div class="card__body">
-        <span class="card__region">@Model.Region</span>
+        @if (!string.IsNullOrEmpty(Model.Region))
+        {
+            <span class="card__region">@Model.Region</span>
+        }
         @if (!string.IsNullOrEmpty(Model.Slug))
         {
             <h3><a class="card__link" asp-controller="Destinations" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Name</a></h3>
@@ -19,5 +25,18 @@
             <h3>@Model.Name</h3>
         }
         <p>@Model.Body</p>
+        @if (!string.IsNullOrEmpty(Model.TimeNeeded) || !string.IsNullOrEmpty(Model.BestTime))
+        {
+            <div class="badge-row">
+                @if (!string.IsNullOrEmpty(Model.TimeNeeded))
+                {
+                    <span class="badge badge--info">@Model.TimeNeeded</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.BestTime))
+                {
+                    <span class="badge badge--season">@Model.BestTime</span>
+                }
+            </div>
+        }
     </div>
 </article>

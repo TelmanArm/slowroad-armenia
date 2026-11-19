@@ -12,6 +12,10 @@ public class PlaceCardViewModel
     public string? Slug { get; set; }
     public string? Body { get; set; }
 
+    // Shown as badges on the card: how long to give it, and when to come.
+    public string? TimeNeeded { get; set; }
+    public string? BestTime { get; set; }
+
     public static PlaceCardViewModel From(ContentItem item, string? body)
     {
         var photo = item.Photos.OrderBy(p => p.SortOrder).FirstOrDefault();
@@ -23,6 +27,8 @@ public class PlaceCardViewModel
             Name = item.Name,
             Slug = item is Place ? item.Slug : null, // only places have a detail page (for now)
             Body = body,
+            TimeNeeded = item.TimeNeeded,
+            BestTime = item.BestTime,
         };
     }
 }

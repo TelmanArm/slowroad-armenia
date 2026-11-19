@@ -2,10 +2,13 @@
 @* ===== Home: intro + featured destinations (from the database) ===== *@
 <section class="section" id="featured">
     <div class="container">
-        <div class="section-head section-head--center">
-            <span class="eyebrow">@Model.Eyebrow</span>
-            <h2>@Model.Title</h2>
-            <p class="lead">@Model.Lead</p>
+        <div class="block-head">
+            <div class="section-head">
+                <span class="eyebrow">@Model.Eyebrow</span>
+                <h2>@Model.Title</h2>
+                <p class="lead">@Model.Lead</p>
+            </div>
+            <a class="block-head__link" href="#destinations">See all destinations &rarr;</a>
         </div>
 
         <div class="card-grid">
@@ -16,9 +19,5 @@
                 <partial name="_PlaceCard" model="card" />
             }
         </div>
-
-        <p class="section-foot">
-            <a class="btn btn--outline" href="#destinations">See all destinations</a>
-        </p>
     </div>
 </section>

@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] – The Slow Road Armenia</title>
     <meta name="description" content="@(ViewData["Description"] ?? "A simple, free travel guide to Armenia for first-time visitors: destinations, planning tips, food and culture.")" />
+    @* The site is light by default. If the reader has chosen dark before, this
+       applies it before the first paint so the page never flashes white. *@
+    <script>try{if(localStorage.getItem("slowroad-theme")==="dark"){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}</script>
     <link rel="icon" type="image/png" sizes="32x32" href="~/images/favicon-32.png" asp-append-version="true" />
     <link rel="apple-touch-icon" href="~/images/apple-touch-icon.png" asp-append-version="true" />
-    <!-- Font: Inter from Google Fonts (system font stack is the fallback, see site.css) -->
+    <!-- Type: Inter for text, Noto Serif Armenian for display headings
+         (one scale across Հայ, Latin and Кириллица). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+Armenian:wght@600;700&display=swap" />
     <!-- One shared stylesheet for the whole site -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <!-- Optional per-page extras (canonical URL, Open Graph, structured data) -->
@@ -19,6 +23,14 @@
 <body>
 <div class="page">
     <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- ===== Utility bar: who we are, how to reach us ===== -->
+    <div class="utility-bar">
+        <div class="container">
+            <p>An independent guide — free to read, and we sell nothing.</p>
+            <a href="mailto:slowroadarmenia@gmail.com">slowroadarmenia@gmail.com</a>
+        </div>
+    </div>
 
     <!-- ===== Header / sticky navigation ===== -->
     <header class="site-header">
@@ -30,8 +42,14 @@
 
             <a class="brand" asp-controller="Home" asp-action="Index">
                 <img class="brand__mark" src="~/images/logo-mark.png" alt="" aria-hidden="true" asp-append-version="true" />
-                The Slow Road Armenia
+                <span>The Slow Road <em>Armenia</em></span>
             </a>
+
+            <button type="button" class="theme-toggle" data-theme-toggle
+                    aria-label="Switch to dark theme" aria-pressed="false">
+                <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"></path></svg>
+                <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path></svg>
+            </button>
 
             <label for="nav-toggle" class="nav-burger" aria-label="Toggle navigation menu">
                 <span></span><span></span><span></span>
@@ -40,7 +58,7 @@
             <ul class="nav-links">
                 <li><a asp-controller="Home" asp-action="Index">Home</a></li>
                 <li><a asp-controller="Home" asp-action="Index" asp-fragment="destinations">Destinations</a></li>
-                <li><a asp-controller="Home" asp-action="Index" asp-fragment="plan">Plan Your Trip</a></li>
+                <li><a asp-controller="Home" asp-action="Index" asp-fragment="plan">Plan your trip</a></li>
                 <li><a asp-controller="Home" asp-action="Index" asp-fragment="about">About</a></li>
                 <li class="nav-cta"><a asp-controller="Home" asp-action="Index" asp-fragment="plan">Start planning</a></li>
             </ul>
@@ -58,7 +76,7 @@
                 <div>
                     <a class="brand" asp-controller="Home" asp-action="Index">
                         <img class="brand__mark" src="~/images/logo-mark.png" alt="" aria-hidden="true" asp-append-version="true" />
-                        The Slow Road Armenia
+                        <span>The Slow Road <em>Armenia</em></span>
                     </a>
                     <p>
                         A free, simple guide for first-time visitors to Armenia — ancient monasteries,
@@ -82,19 +100,21 @@
                 </div>
                 <div>
                     <h3>Contact</h3>
+                    <p>Spotted a mistake, or have a tip to share? Write to us — a plain mail link, no form.</p>
                     <ul>
-                        <li><a href="mailto:hello@slowroadarmenia.com">hello@slowroadarmenia.com</a></li>
+                        <li><a href="mailto:slowroadarmenia@gmail.com">slowroadarmenia@gmail.com</a></li>
                         <li><a asp-controller="Home" asp-action="Privacy">Privacy</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2026 The Slow Road Armenia. All rights reserved.</span>
-                <span>Made with plain HTML &amp; CSS. Photos: replace placeholders with your own or free Unsplash/Pexels images.</span>
+                <p>&copy; 2026 The Slow Road Armenia. All rights reserved.</p>
+                <p>Information only — we take no bookings and sell no tours. Check official sources before you travel.</p>
             </div>
         </div>
     </footer>
 </div>
+<script src="~/js/site.js" asp-append-version="true" defer></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
