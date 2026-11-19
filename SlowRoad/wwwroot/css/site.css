@@ -490,6 +490,17 @@ section[id] { scroll-margin-top: calc(var(--nav-height) + 1rem); }
   flex: 0 0 auto;
 }
 
+/* The snail's body is a dark green. On a dark surface it drops to about
+   2.8:1 — under the 3:1 floor for graphics — and the mark reads as a stray
+   orange blob. On every dark surface it therefore sits on the same small
+   cream chip it has in the full logo (the footer does this already). */
+:root[data-theme="dark"] .site-header .brand__mark {
+  padding: 3px 5px;
+  background: #FFF7EC;
+  border-radius: 8px;
+  box-sizing: content-box;
+}
+
 /* Light / dark switch. The site is light until this is pressed; the icon
    shows what pressing it will give you. */
 .theme-toggle {
