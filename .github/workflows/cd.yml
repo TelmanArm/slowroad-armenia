@@ -51,6 +51,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The default docker driver can't export to the gha cache; buildx can.
+      - uses: docker/setup-buildx-action@v3
+
       # Build once and tag with the commit SHA (immutable, traceable)
       # and "latest" (convenience pointer to the newest build).
       - name: Build and push
@@ -62,6 +65,8 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build
