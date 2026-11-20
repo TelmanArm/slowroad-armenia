@@ -44,6 +44,10 @@ pipeline.
   destinations, featured, plan, about), destination pages at `/destinations/{slug}`.
 - **Photos** — stored in the database at several widths and served from
   `/photos/{id}/{width}` (cached 7 days).
+- **Statistics** — Google Analytics 4, rendered from `_Layout.cshtml` only when
+  `Analytics:MeasurementId` is set and the environment is not Development, so local
+  browsing stays out of the numbers. One page view per page, no custom events, and
+  the admin layout carries no tag.
 - **Admin** — `/Admin` (cookie login via ASP.NET Identity) to create, edit and
   delete places and upload, order and remove their photos. The admin user is
   seeded on startup from `Admin:Email` / `Admin:Password`.

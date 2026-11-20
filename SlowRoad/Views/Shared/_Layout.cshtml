@@ -1,3 +1,12 @@
+@inject IConfiguration Configuration
+@inject IWebHostEnvironment Env
+@{
+    // Google Analytics 4. The measurement ID lives in configuration, so the
+    // site runs with no analytics at all when it is empty — and it never runs
+    // locally, so development browsing stays out of the real numbers.
+    var gaId = Configuration["Analytics:MeasurementId"];
+    var analytics = !Env.IsDevelopment() && !string.IsNullOrWhiteSpace(gaId);
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +28,18 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <!-- Optional per-page extras (canonical URL, Open Graph, structured data) -->
     @await RenderSectionAsync("Head", required: false)
+    @* Google Analytics 4 — one page view per page, no custom events.
+       Loaded async, so it never delays the page. *@
+    @if (analytics)
+    {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@gaId"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag("js", new Date());
+            gtag("config", "@gaId");
+        </script>
+    }
 </head>
 <body>
 <div class="page">
