@@ -17,7 +17,11 @@
 
     <div>
         <label asp-for="Password"></label>
-        <input asp-for="Password" />
+        <div class="admin-password">
+            <input asp-for="Password" class="admin-password__input" />
+            <button type="button" class="admin-password__toggle" data-password-toggle hidden
+                    aria-pressed="false" aria-label="Show password">Show</button>
+        </div>
         <span asp-validation-for="Password"></span>
     </div>
 
@@ -25,3 +29,26 @@
 </form>
 
 <a class="admin-back" asp-controller="Home" asp-action="Index">← Back to site</a>
+
+@section Scripts {
+    <script>
+        // Show/hide the typed password. Progressive enhancement: without JS the
+        // field stays a plain password input and the toggle is hidden by CSS.
+        (function () {
+            document.querySelectorAll('[data-password-toggle]').forEach(function (btn) {
+                var input = btn.parentElement.querySelector('input');
+                if (!input) return;
+
+                btn.hidden = false;
+                btn.addEventListener('click', function () {
+                    var reveal = input.type === 'password';
+                    input.type = reveal ? 'text' : 'password';
+                    btn.textContent = reveal ? 'Hide' : 'Show';
+                    btn.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+                    btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+                    input.focus();
+                });
+            });
+        })();
+    </script>
+}
