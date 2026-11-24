@@ -46,8 +46,30 @@ public class PlacesController : Controller
         return RedirectToAction(nameof(Index));
     }
     
-    // The two widths we keep for each photo (see PhotosController / srcset).
-    private static readonly int[] PhotoWidths = { 700, 1400 };
+    // One row per photo. No resizing library yet, so storing it per width
+    // only duplicated the bytes. Smaller widths fall back to this one.
+    private const int FullWidth = 1400;
+
+    // Type from the first bytes, never the client's ContentType
+    // (image/svg+xml there is stored XSS). null = not allowed.
+    private static string? SniffImageContentType(byte[] b)
+    {
+        // JPEG: FF D8 FF
+        if (b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF)
+            return "image/jpeg";
+
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (b.Length >= 8 && b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47
+            && b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A)
+            return "image/png";
+
+        // WebP: "RIFF" .... "WEBP"
+        if (b.Length >= 12 && b[0] == (byte)'R' && b[1] == (byte)'I' && b[2] == (byte)'F' && b[3] == (byte)'F'
+            && b[8] == (byte)'W' && b[9] == (byte)'E' && b[10] == (byte)'B' && b[11] == (byte)'P')
+            return "image/webp";
+
+        return null;
+    }
 
     // GET /Places/Edit/5
     public async Task<IActionResult> Edit(int id)
@@ -130,19 +152,19 @@ public class PlacesController : Controller
 
         foreach (var upload in photos.Where(f => f.Length > 0))
         {
-            if (!upload.ContentType.StartsWith("image/"))
+            using var ms = new MemoryStream();
+            await upload.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            var contentType = SniffImageContentType(bytes);
+            if (contentType is null)
             {
                 skipped.Add(upload.FileName);
                 continue;
             }
 
-            using var ms = new MemoryStream();
-            await upload.CopyToAsync(ms);
-            var bytes = ms.ToArray();
-
             var photo = new Photo { Alt = place.Name, SortOrder = next++ };
-            foreach (var width in PhotoWidths)
-                photo.Files.Add(new PhotoFile { Width = width, ContentType = upload.ContentType, Bytes = bytes });
+            photo.Files.Add(new PhotoFile { Width = FullWidth, ContentType = contentType, Bytes = bytes });
 
             place.Photos.Add(photo);
             added++;
@@ -153,7 +175,7 @@ public class PlacesController : Controller
         TempData["PhotoMessage"] = added == 0 ? "No photos were added."
             : added == 1 ? "1 photo added." : $"{added} photos added.";
         if (skipped.Count > 0)
-            TempData["PhotoError"] = "Not an image, skipped: " + string.Join(", ", skipped);
+            TempData["PhotoError"] = "Not a JPEG, PNG or WebP image, skipped: " + string.Join(", ", skipped);
 
         return RedirectToAction(nameof(Edit), new { id });
     }
