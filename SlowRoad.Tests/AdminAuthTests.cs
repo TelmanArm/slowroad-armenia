@@ -1,6 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -93,7 +91,7 @@ public class AdminAuthTests : IClassFixture<TestAppFactory>
     public async Task Login_WithCorrectPassword_Succeeds()
     {
         var client = NoRedirectClient();
-        var response = await PostLoginAsync(client, Email, Password);
+        var response = await LoginForm.PostAsync(client, Email, Password);
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.Equal("/Admin", response.Headers.Location?.OriginalString);
@@ -107,7 +105,7 @@ public class AdminAuthTests : IClassFixture<TestAppFactory>
     public async Task Login_WithWrongPassword_Fails()
     {
         var client = NoRedirectClient();
-        var response = await PostLoginAsync(client, Email, "not-the-password");
+        var response = await LoginForm.PostAsync(client, Email, "not-the-password");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);   // the form, again
         Assert.Contains("Invalid email or password.", await response.Content.ReadAsStringAsync());
@@ -119,7 +117,7 @@ public class AdminAuthTests : IClassFixture<TestAppFactory>
     [Fact] // an unknown email fails the same way, with the same message
     public async Task Login_WithUnknownEmail_Fails()
     {
-        var response = await PostLoginAsync(NoRedirectClient(), "nobody@test.local", Password);
+        var response = await LoginForm.PostAsync(NoRedirectClient(), "nobody@test.local", Password);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Invalid email or password.", await response.Content.ReadAsStringAsync());
@@ -129,7 +127,7 @@ public class AdminAuthTests : IClassFixture<TestAppFactory>
     public async Task Login_IgnoresOffsiteReturnUrl()
     {
         var client = NoRedirectClient();
-        var response = await PostLoginAsync(client, Email, Password, returnUrl: "https://evil.example.com/");
+        var response = await LoginForm.PostAsync(client, Email, Password, returnUrl: "https://evil.example.com/");
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.Equal("/Admin", response.Headers.Location?.OriginalString);
@@ -139,55 +137,10 @@ public class AdminAuthTests : IClassFixture<TestAppFactory>
     public async Task Login_HonoursLocalReturnUrl()
     {
         var client = NoRedirectClient();
-        var response = await PostLoginAsync(client, Email, Password, returnUrl: "/Places");
+        var response = await LoginForm.PostAsync(client, Email, Password, returnUrl: "/Places");
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.Equal("/Places", response.Headers.Location?.OriginalString);
     }
 
-    // ---- helpers -----------------------------------------------------------
-
-    // Fetches the login form, carries its antiforgery token and cookie back in,
-    // the way a browser does.
-    private static async Task<HttpResponseMessage> PostLoginAsync(
-        HttpClient client, string email, string password, string? returnUrl = null)
-    {
-        var url = returnUrl is null ? "/Admin/Login" : $"/Admin/Login?returnUrl={Uri.EscapeDataString(returnUrl)}";
-        var form = await client.GetAsync(url);
-        form.EnsureSuccessStatusCode();
-
-        var html = await form.Content.ReadAsStringAsync();
-        var token = Regex.Match(html,
-            """name="__RequestVerificationToken"[^>]*value="([^"]+)""").Groups[1].Value;
-        Assert.False(string.IsNullOrEmpty(token), "no antiforgery token on the login form");
-
-        var fields = new Dictionary<string, string>
-        {
-            ["Email"] = email,
-            ["Password"] = password,
-            ["__RequestVerificationToken"] = token,
-        };
-        if (returnUrl is not null)
-            fields["ReturnUrl"] = returnUrl;
-
-        var request = new HttpRequestMessage(HttpMethod.Post, "/Admin/Login")
-        {
-            Content = new FormUrlEncodedContent(fields),
-        };
-        foreach (var cookie in Cookies(form))
-            request.Headers.Add("Cookie", cookie);
-
-        return await client.SendAsync(request);
-    }
-
-    // name=value pairs from Set-Cookie, dropping the attributes.
-    private static IEnumerable<string> Cookies(HttpResponseMessage response) =>
-        response.Headers.TryGetValues(HeaderNames.SetCookie, out var values)
-            ? values.Select(v => v.Split(';')[0])
-            : Enumerable.Empty<string>();
-
-    private static class HeaderNames
-    {
-        public const string SetCookie = "Set-Cookie";
-    }
 }

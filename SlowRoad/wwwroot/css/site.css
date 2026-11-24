@@ -1352,6 +1352,29 @@ section[id] { scroll-margin-top: calc(var(--nav-height) + 1rem); }
 }
 .admin-card textarea { resize: vertical; }
 
+/* Password field with an in-field Show/Hide toggle (revealed by JS). */
+.admin-password { position: relative; }
+.admin-card .admin-password__input { padding-right: 4.5rem; }
+.admin-password__toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .admin-password__toggle:hover { text-decoration: underline; }
+}
+.admin-password__toggle:focus-visible { outline-offset: -2px; }
+
 .admin-card button[type="submit"] {
   display: block;
   width: 100%;

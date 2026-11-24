@@ -60,12 +60,31 @@
         dest: /etc/nginx/conf.d/slowroad-ssl.conf
         mode: "0644"
         content: |
+          # Shared memory for the login throttle. conf.d is included inside
+          # the http block, so this belongs here rather than in a server block.
+          limit_req_zone $binary_remote_addr zone=login:10m rate=12r/m;
+
           server {
               listen 443 ssl;
               server_name slowroadarmenia.com www.slowroadarmenia.com;
 
               ssl_certificate     /etc/letsencrypt/live/slowroadarmenia.com/fullchain.pem;
               ssl_certificate_key /etc/letsencrypt/live/slowroadarmenia.com/privkey.pem;
+
+              # Outer throttle on the admin login, so a brute-force run is
+              # dropped here before it costs the app any password hashing.
+              # Case-insensitive regex: ASP.NET routing answers /admin/login as
+              # well, and a regex location wins over the prefix one below.
+              location ~* ^/admin/login {
+                  limit_req zone=login burst=5 nodelay;
+                  limit_req_status 429;
+
+                  proxy_pass http://127.0.0.1:8080;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
 
               location / {
                   proxy_pass http://127.0.0.1:8080;
